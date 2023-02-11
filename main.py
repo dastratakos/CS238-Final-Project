@@ -15,7 +15,7 @@ from config import (
     HIGHLIGHT_IMG_FILENAME,
     PLAYER_IMG_FILENAME,
 )
-from sprites import Player, Block, Spike, End, Sprite
+from sprites import Player, Sprite
 from utils import resize_image
 
 
@@ -30,15 +30,17 @@ class Camera:
 def check_collisions(player, object_sprites):
     for object in object_sprites:
         if pygame.sprite.collide_rect(player, object):
-            if isinstance(object, End):
-                print("You win!")
-            elif isinstance(object, Sprite):
+            # if isinstance(object, End):
+            #     print("You win!")
+            if isinstance(object, Sprite):
                 if player.velocity.y > 0:  # player is falling
+                    print("Collision and player falling")
                     player.rect.bottom = object.rect.top
                     player.velocity.y = 0
                     player.on_ground = True
                     player.jumping = False
                 elif player.velocity.y < 0:  # player is jumping
+                    print("Collision and player jumping")
                     player.rect.top = object.rect.bottom
                 else:  # player is going forward
                     player.velocity.x = 0
@@ -74,7 +76,6 @@ def load_objects(object_sprites, filename):
 def restart(level_filename="./maps/0.csv"):
     # Create the player
     player_sprite = pygame.sprite.Group()
-    print("player_sprite", player_sprite)
     player = Player((BLOCK_SIZE * 5, BLOCK_SIZE * 5), player_img, player_sprite)
 
     # Create the objects
@@ -100,13 +101,13 @@ class MovingTile:
 
 
 def blit_rotate(surface, image, pos, origin_pos, angle):
-    """Rotate an image while keeping its center and size."""
-    # calcaulate the axis aligned bounding box of the rotated image
+    """Rotates an image while keeping its center and size."""
+    # Calculate the axis aligned bounding box of the rotated image
     w, h = image.get_size()
-    box = [Vector2(p) for p in [(0, 0), (w, 0), (w, -h), (0, -h)]]
-    box_rotate = [p.rotate(angle) for p in box]
+    box = [Vector2(point) for point in [(0, 0), (w, 0), (w, -h), (0, -h)]]
+    box_rotate = [point.rotate(angle) for point in box]
 
-    # make sure the player does not overlap, uses a few lambda functions(new things that we did not learn about number1)
+    # Make sure the player does not overlap
     min_box = (
         min(box_rotate, key=lambda p: p[0])[0],
         min(box_rotate, key=lambda p: p[1])[1],
@@ -115,21 +116,22 @@ def blit_rotate(surface, image, pos, origin_pos, angle):
         max(box_rotate, key=lambda p: p[0])[0],
         max(box_rotate, key=lambda p: p[1])[1],
     )
-    # calculate the translation of the pivot
+    
+    #Ccalculate the translation of the pivot
     pivot = Vector2(origin_pos[0], -origin_pos[1])
     pivot_rotate = pivot.rotate(angle)
     pivot_move = pivot_rotate - pivot
 
-    # calculate the upper left origin of the rotated image
+    # Calculate the upper left origin of the rotated image
     origin = (
         pos[0] - origin_pos[0] + min_box[0] - pivot_move[0],
         pos[1] - origin_pos[1] - max_box[1] + pivot_move[1],
     )
 
-    # get a rotated image
+    # Get a rotated image
     rotated_image = pygame.transform.rotozoom(image, angle, 1)
 
-    # rotate and blit the image
+    # Rotate and blit the image
     surface.blit(rotated_image, origin)
 
 
@@ -156,8 +158,6 @@ def main():
         )
         for i in range(8)
     ]
-    
-    angle = 0
 
     started = False
     exit = False
@@ -196,26 +196,16 @@ def main():
             screen.blit(ground.image, (ground.x, BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4)))
         screen.blit(highlight, (0, BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4)))
 
-        player.draw_particle_trail(
-            (player.rect.left - 1, player.rect.bottom + 2), alpha_surface
-        )
+        for particle in player.particles:
+            rect(alpha_surface, (255, 255, 255), particle.get_rect())
         screen.blit(alpha_surface, (0, 0))
 
         object_sprites.draw(screen)
-        player_sprite.draw(screen)
         if player.jumping:
-            # The angle to do a 360 deg turn in one jump
-            angle -= 8.1712
-            blit_rotate(
-                screen,
-                player.image,
-                player.rect.center,
-                (BLOCK_SIZE / 2, BLOCK_SIZE / 2),
-                angle,
-            )
+            screen.blit(player.image, player.pos)
         else:
-            """if player.isjump is false, then just blit it normally(by using Group().draw() for sprites"""
-            player_sprite.draw(screen)  # draw player sprite group
+            # screen.blit(player.image, player.pos)
+            player_sprite.draw(screen)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
