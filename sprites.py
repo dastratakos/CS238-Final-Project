@@ -14,6 +14,7 @@ from config import (
 )
 from utils import resize_image
 
+
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, pos, image, *groups):
         super().__init__(*groups)
@@ -81,8 +82,6 @@ class Player(Sprite):
             )
             if particle[2] <= 0:
                 self.particles.remove(particle)
-        
-        print(self.particles)
 
 
 class Block(Sprite):
