@@ -32,17 +32,15 @@ def check_collisions(player, object_sprites):
         if pygame.sprite.collide_rect(player, object):
             if isinstance(object, End):
                 print("You win!")
-            elif isinstance(object, Spike):
-                print("You lose!")
-            elif isinstance(object, Block):
+            elif isinstance(object, Sprite):
                 if player.velocity.y > 0:  # player is falling
                     player.rect.bottom = object.rect.top
                     player.velocity.y = 0
                     player.on_ground = True
                     player.jumping = False
-                elif player.velocity.y < 0:
+                elif player.velocity.y < 0: # player is jumping
                     player.rect.top = object.rect.bottom
-                else:
+                else: # player is going forward
                     player.velocity.x = 0
                     player.rect.right = object.rect.left
                     print("You lose!")
@@ -73,7 +71,7 @@ def load_objects(object_sprites, filename):
             y += BLOCK_SIZE
 
 
-def restart(level_filename="./maps/1.csv"):
+def restart(level_filename="./maps/0.csv"):
     # Create the player
     player_sprite = pygame.sprite.Group()
     print("player_sprite", player_sprite)
@@ -138,14 +136,14 @@ def main():
             player.jumping = True
 
         camera.x += VELOCITY_X
-        camera.y += player.velocity.y
+        # camera.y += player.velocity.y
         for background in backgrounds:
             background.update(VELOCITY_X / 10)
         for ground in grounds:
             ground.update(VELOCITY_X)
 
         player_sprite.update()
-        # check_collisions(player, object_sprites)
+        check_collisions(player, object_sprites)
 
         # Move map
         for sprite in object_sprites:

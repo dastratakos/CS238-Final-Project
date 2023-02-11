@@ -1,7 +1,7 @@
 import pygame
 from pygame.math import Vector2
 
-from config import JUMP_HEIGHT, GRAVITY, MAX_FALL_VELOCITY, BLOCK_SIZE
+from config import JUMP_HEIGHT, GRAVITY, MAX_FALL_VELOCITY, BLOCK_SIZE, SCREEN_BLOCKS
 from utils import resize_image
 
 
@@ -30,13 +30,17 @@ class Player(Sprite):
         if self.jumping and self.on_ground:
             self.jump()
 
-        if not self.on_ground and False:
+        if not self.on_ground:
             self.velocity.y = min(self.velocity.y + GRAVITY, MAX_FALL_VELOCITY)
+        
+        self.on_ground = False
 
         self.rect.top += self.velocity.y
-        self.rect.top = min(self.rect.top, BLOCK_SIZE * 18.5)
-
-        self.on_ground = False
+        if self.rect.top > BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4 - 1):
+            self.rect.top = BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4 - 1)
+            self.velocity.y = 0
+            self.jumping = False
+            self.on_ground = True
 
         # print(self.velocity.y)
 
