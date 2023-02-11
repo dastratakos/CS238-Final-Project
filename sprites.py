@@ -62,6 +62,10 @@ class Player(Sprite):
         self.pos = pos
 
     def rotate(self):
+        if self.angle == 0:
+            self.image = self.original_image
+            return
+
         rotated_box = [
             Vector2((0, 0)).rotate(self.angle),
             Vector2((BLOCK_SIZE, 0)).rotate(self.angle),
@@ -85,18 +89,23 @@ class Player(Sprite):
         self.image = pygame.transform.rotozoom(self.original_image, self.angle, 1)
 
     def update(self):
-        if self.jumping and self.on_ground:
-            self.velocity.y = -self.velocity_jump
-            self.last_velocity_jump = self.velocity_jump
+        if self.jumping:
+            if self.on_ground:
+                self.velocity.y = -self.velocity_jump
+                self.last_velocity_jump = self.velocity_jump
+            else: # Don't rotate on the first frame
+                # the angle to do a 180 deg turn in one jump
+                self.angle -= (180 * GRAVITY) / (2 * self.last_velocity_jump)
+                self.rotate()
 
         if not self.on_ground:
             self.velocity.y = min(self.velocity.y + GRAVITY, MAX_FALL_VELOCITY)
 
-        # If jumping, compute the rotated image
-        if self.jumping:
-            # the angle to do a 180 deg turn in one jump
-            self.angle -= (180 * GRAVITY) / (2 * self.last_velocity_jump)
-            self.rotate()
+        # # If jumping, compute the rotated image
+        # if self.jumping:
+        #     # the angle to do a 180 deg turn in one jump
+        #     self.angle -= (180 * GRAVITY) / (2 * self.last_velocity_jump)
+        #     self.rotate()
 
         # Update particle trail
         if self.on_ground:
@@ -108,7 +117,10 @@ class Player(Sprite):
                 )
             )
             # If on the ground, round the angle to the nearest 90 deg
-            self.angle = 90 * math.ceil(self.angle / 90) % 360
+            print("Old angle: ", self.angle)
+            self.angle = 90 * round(self.angle / 90) % 360
+            # self.angle = 90 * math.ceil(self.angle / 90) % 360
+            print("New angle: ", self.angle)
             self.rotate()
 
         for particle in self.particles:

@@ -1,8 +1,8 @@
 import csv
 import os
+import sys
 
 import pygame
-from pygame.math import Vector2
 from pygame.draw import rect
 
 from config import (
@@ -100,42 +100,10 @@ class MovingTile:
             self.x += self.width * self.num_siblings
 
 
-def blit_rotate(surface, image, pos, origin_pos, angle):
-    """Rotates an image while keeping its center and size."""
-    # Calculate the axis aligned bounding box of the rotated image
-    w, h = image.get_size()
-    box = [Vector2(point) for point in [(0, 0), (w, 0), (w, -h), (0, -h)]]
-    box_rotate = [point.rotate(angle) for point in box]
-
-    # Make sure the player does not overlap
-    min_box = (
-        min(box_rotate, key=lambda p: p[0])[0],
-        min(box_rotate, key=lambda p: p[1])[1],
-    )
-    max_box = (
-        max(box_rotate, key=lambda p: p[0])[0],
-        max(box_rotate, key=lambda p: p[1])[1],
-    )
-    
-    #Ccalculate the translation of the pivot
-    pivot = Vector2(origin_pos[0], -origin_pos[1])
-    pivot_rotate = pivot.rotate(angle)
-    pivot_move = pivot_rotate - pivot
-
-    # Calculate the upper left origin of the rotated image
-    origin = (
-        pos[0] - origin_pos[0] + min_box[0] - pivot_move[0],
-        pos[1] - origin_pos[1] - max_box[1] + pivot_move[1],
-    )
-
-    # Get a rotated image
-    rotated_image = pygame.transform.rotozoom(image, angle, 1)
-
-    # Rotate and blit the image
-    surface.blit(rotated_image, origin)
-
-
 def main():
+    if len(sys.argv) != 2:
+        raise Exception(f"usage: python {sys.argv[0]} <level>")
+
     pygame.init()
     screen = pygame.display.set_mode(SCREEN_SIZE)
     pygame.display.set_caption("Geometry Dash AI")
@@ -167,7 +135,9 @@ def main():
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                         started = True
-            player_sprite, player, object_sprites, camera = restart()
+            player_sprite, player, object_sprites, camera = restart(
+                level_filename=f"./maps/{sys.argv[1]}.csv"
+            )
 
         if pygame.key.get_pressed()[pygame.K_SPACE]:
             player.jumping = True
@@ -214,7 +184,9 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     exit = True
                 if event.key == pygame.K_r:
-                    player_sprite, player, object_sprites, camera = restart()
+                    player_sprite, player, object_sprites, camera = restart(
+                        level_filename=f"./maps/{sys.argv[1]}.csv"
+                    )
 
         pygame.display.flip()
         clock.tick(60)
