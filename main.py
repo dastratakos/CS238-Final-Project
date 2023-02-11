@@ -38,9 +38,9 @@ def check_collisions(player, object_sprites):
                     player.velocity.y = 0
                     player.on_ground = True
                     player.jumping = False
-                elif player.velocity.y < 0: # player is jumping
+                elif player.velocity.y < 0:  # player is jumping
                     player.rect.top = object.rect.bottom
-                else: # player is going forward
+                else:  # player is going forward
                     player.velocity.x = 0
                     player.rect.right = object.rect.left
                     print("You lose!")
@@ -106,6 +106,7 @@ def main():
     # pygame.display.set_icon(player)
     clock = pygame.time.Clock()
 
+    alpha_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
     highlight = resize_image(pygame.image.load(HIGHLIGHT_IMG_FILENAME), (800, 2.5))
     backgrounds = [
         MovingTile(pygame.image.load(BACKGROUND_IMG_FILENAME), i * 800, 2)
@@ -141,6 +142,8 @@ def main():
             background.update(VELOCITY_X / 10)
         for ground in grounds:
             ground.update(VELOCITY_X)
+        
+        alpha_surface.fill((255, 255, 255, 1), special_flags=pygame.BLEND_RGBA_MULT)
 
         player_sprite.update()
         check_collisions(player, object_sprites)
@@ -156,6 +159,12 @@ def main():
         for ground in grounds:
             screen.blit(ground.image, (ground.x, BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4)))
         screen.blit(highlight, (0, BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4)))
+        
+        player.draw_particle_trail(
+            (player.rect.left - 1, player.rect.bottom + 2), alpha_surface
+        )
+        screen.blit(alpha_surface, (0, 0))
+        
         object_sprites.draw(screen)
         player_sprite.draw(screen)
 
@@ -165,6 +174,8 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     exit = True
+                if event.key == pygame.K_r:
+                    player_sprite, player, object_sprites, camera = restart()
 
         pygame.display.flip()
         clock.tick(60)

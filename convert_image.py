@@ -30,4 +30,4 @@ def crop_tiles():
 
 
 if __name__ == "__main__":
-    crop_tiles()
+    pass
