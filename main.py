@@ -62,10 +62,10 @@ def load_objects(object_sprites, filename):
         for row in map:
             for cell in row:
                 # if cell != "0":
-                if os.path.exists(f"assets/tile-{cell}.png"):
+                if os.path.exists(f"assets/tiles/tile-{cell}.png"):
                     Sprite(
                         (x, y),
-                        resize_image(pygame.image.load(f"assets/tile-{cell}.png")),
+                        resize_image(pygame.image.load(f"assets/tiles/tile-{cell}.png")),
                         object_sprites,
                     )
                 x += BLOCK_SIZE
