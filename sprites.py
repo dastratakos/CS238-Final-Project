@@ -54,7 +54,7 @@ class Player(Sprite):
         self.last_velocity_jump = JUMP_VELOCITY
         self.velocity = Vector2(0, 0)
 
-        self.jumping = False
+        self.should_jump = False
         self.on_ground = False
 
         self.original_image = image
@@ -87,9 +87,56 @@ class Player(Sprite):
         )
 
         self.image = pygame.transform.rotozoom(self.original_image, self.angle, 1)
+        
+    def update_new(self):
+        # 1. Update position, velocity, and angle
+        # 2. Check for collisions
+        # 3. Render
+        if self.should_jump and self.on_ground:
+            # perform the jump
+            self.should_jump = False
+            self.on_ground = False
+            self.velocity.y = -self.velocity_jump
+            self.last_velocity_jump = self.velocity_jump
+        
+        if self.on_ground:
+            # Add a particle
+            self.particles.append(
+                Particle(
+                    (self.rect.left - 6, self.rect.bottom - 6),
+                    (random.randint(0, 25) / 10 - 1, 0),
+                    random.randint(10, 16),
+                )
+            )
+            # Round the angle to the nearest 90 deg
+            print("Old angle: ", self.angle)
+            self.angle = 90 * round(self.angle / 90) % 360
+            # self.angle = 90 * math.ceil(self.angle / 90) % 360
+            print("New angle: ", self.angle)
+            self.rotate()
+        else:
+            self.velocity.y = min(self.velocity.y + GRAVITY, MAX_FALL_VELOCITY)
+            self.angle -= (180 * GRAVITY) / (2 * self.last_velocity_jump)
+            self.rotate()
+        
+        self.on_ground = False
+
+        self.rect.top += self.velocity.y
+        if self.rect.top > BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4) - BLOCK_SIZE:
+            self.rect.top = BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4) - BLOCK_SIZE
+            self.velocity.y = 0
+            self.should_jump = False
+            self.on_ground = True
+        
+        # Remove old particles
+        for particle in self.particles:
+            particle.update()
+            if particle.ttl <= 0:
+                self.particles.remove(particle)
+        
 
     def update(self):
-        if self.jumping:
+        if self.should_jump:
             if self.on_ground:
                 self.velocity.y = -self.velocity_jump
                 self.last_velocity_jump = self.velocity_jump
@@ -102,7 +149,7 @@ class Player(Sprite):
             self.velocity.y = min(self.velocity.y + GRAVITY, MAX_FALL_VELOCITY)
 
         # # If jumping, compute the rotated image
-        # if self.jumping:
+        # if self.should_jump:
         #     # the angle to do a 180 deg turn in one jump
         #     self.angle -= (180 * GRAVITY) / (2 * self.last_velocity_jump)
         #     self.rotate()
@@ -131,8 +178,8 @@ class Player(Sprite):
         self.on_ground = False
 
         self.rect.top += self.velocity.y
-        if self.rect.top > BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4 - 1):
-            self.rect.top = BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4 - 1)
+        if self.rect.top > BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4) - BLOCK_SIZE:
+            self.rect.top = BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4) - BLOCK_SIZE
             self.velocity.y = 0
-            self.jumping = False
+            self.should_jump = False
             self.on_ground = True

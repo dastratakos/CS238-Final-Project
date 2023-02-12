@@ -15,7 +15,7 @@ from config import (
     HIGHLIGHT_IMG_FILENAME,
     PLAYER_IMG_FILENAME,
 )
-from sprites import Player, Sprite
+from sprites import Player, Sprite, Object
 from utils import resize_image
 
 
@@ -27,7 +27,7 @@ class Camera:
         self.x, self.y = 0, 0
 
 
-def check_collisions(player, object_sprites):
+def check_collisions(player, object_sprites, floor):
     for object in object_sprites:
         if pygame.sprite.collide_rect(player, object):
             # if isinstance(object, End):
@@ -38,7 +38,7 @@ def check_collisions(player, object_sprites):
                     player.rect.bottom = object.rect.top
                     player.velocity.y = 0
                     player.on_ground = True
-                    player.jumping = False
+                    player.should_jump = False
                 elif player.velocity.y < 0:  # player is jumping
                     print("Collision and player jumping")
                     player.rect.top = object.rect.bottom
@@ -82,15 +82,25 @@ def restart(level_filename="./maps/0.csv"):
     object_sprites = pygame.sprite.Group()
     load_objects(object_sprites, level_filename)
 
+    # Create the floor
+    floor_sprite = pygame.sprite.Group()
+    floor = Object(
+        (0, BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4)),
+        resize_image(pygame.image.load(HIGHLIGHT_IMG_FILENAME), (800, 2.5)),
+        floor_sprite,
+    )
+
+    # Create the camera
     camera = Camera()
 
-    return player_sprite, player, object_sprites, camera
+    return player_sprite, player, object_sprites, floor, camera
 
 
 class MovingTile:
-    def __init__(self, image, x, num_siblings):
+    def __init__(self, image, pos, num_siblings):
         self.image = image
-        self.x = x
+        self.x = pos[0]
+        self.y = pos[1]
         self.width = self.image.get_width()
         self.num_siblings = num_siblings
 
@@ -111,9 +121,8 @@ def main():
     clock = pygame.time.Clock()
 
     alpha_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
-    highlight = resize_image(pygame.image.load(HIGHLIGHT_IMG_FILENAME), (800, 2.5))
     backgrounds = [
-        MovingTile(pygame.image.load(BACKGROUND_IMG_FILENAME), i * 800, 2)
+        MovingTile(pygame.image.load(BACKGROUND_IMG_FILENAME), (i * 800, 0), 2)
         for i in range(2)
     ]
     grounds = [
@@ -121,7 +130,7 @@ def main():
             resize_image(
                 pygame.image.load(GROUND_IMG_FILENAME), (BLOCK_SIZE * 4, BLOCK_SIZE * 4)
             ),
-            i * BLOCK_SIZE * 4,
+            (i * BLOCK_SIZE * 4, BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4)),
             8,
         )
         for i in range(8)
@@ -135,48 +144,55 @@ def main():
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                         started = True
-            player_sprite, player, object_sprites, camera = restart(
+            player_sprite, player, object_sprites, floor, camera = restart(
                 level_filename=f"./maps/{sys.argv[1]}.csv"
             )
 
+        # TODO: decompose into PlayerController class
         if pygame.key.get_pressed()[pygame.K_SPACE]:
-            player.jumping = True
+            player.should_jump = True
 
-        camera.x += VELOCITY_X
-        # camera.y += player.velocity.y
-        for background in backgrounds:
-            background.update(VELOCITY_X / 10)
-        for ground in grounds:
-            ground.update(VELOCITY_X)
-
-        alpha_surface.fill((255, 255, 255, 1), special_flags=pygame.BLEND_RGBA_MULT)
-
+        # 1. Update player(s), objects, floor, camera, background, and ground
         player_sprite.update()
-        check_collisions(player, object_sprites)
 
-        # Move map
         for sprite in object_sprites:
             sprite.rect.x = sprite.initial_pos[0] - camera.x
             sprite.rect.y = sprite.initial_pos[1] - camera.y
 
-        # Redraw
-        for background in backgrounds:
-            screen.blit(background.image, (background.x, 0))
-        for ground in grounds:
-            screen.blit(ground.image, (ground.x, BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4)))
-        screen.blit(highlight, (0, BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4)))
+        floor.rect.y = floor.initial_pos[1] - camera.y
 
+        camera.x += VELOCITY_X
+        # camera.y += player.velocity.y
+
+        for background in backgrounds:
+            background.update(VELOCITY_X / 10)
+
+        for ground in grounds:
+            ground.update(VELOCITY_X)
+
+        # 2. Check for collisions and update player(s) as necessary
+        check_collisions(player, object_sprites, floor)
+
+        # 3, Redraw
+        for background in backgrounds:
+            screen.blit(background.image, (background.x, background.y))
+        for ground in grounds:
+            screen.blit(ground.image, (ground.x, ground.y))
+        screen.blit(floor, (floor.rect.x, floor.rect.y))
+
+        alpha_surface.fill((255, 255, 255, 1), special_flags=pygame.BLEND_RGBA_MULT)
         for particle in player.particles:
             rect(alpha_surface, (255, 255, 255), particle.get_rect())
         screen.blit(alpha_surface, (0, 0))
 
         object_sprites.draw(screen)
-        if player.jumping:
+        if player.should_jump:
             screen.blit(player.image, player.pos)
         else:
             # screen.blit(player.image, player.pos)
             player_sprite.draw(screen)
 
+        # 4. Check for inputs
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit = True
@@ -184,7 +200,7 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     exit = True
                 if event.key == pygame.K_r:
-                    player_sprite, player, object_sprites, camera = restart(
+                    player_sprite, player, object_sprites, floor, camera = restart(
                         level_filename=f"./maps/{sys.argv[1]}.csv"
                     )
 
