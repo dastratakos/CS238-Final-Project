@@ -26,11 +26,12 @@ class ImageSprite(Sprite):
     def __init__(self, position: tuple, image: pygame.image, *groups):
         super().__init__(position, *groups)
         self.image = image
-        cenetered_position = (
+        self.mask = pygame.mask.from_surface(self.image)
+        centered_position = (
             position[0] + image.get_width() / 2,
             position[1] + image.get_height() / 2,
         )
-        self.rect = self.image.get_rect(center=cenetered_position)
+        self.rect = self.image.get_rect(center=centered_position)
 
 
 class TiledSprite(ImageSprite):

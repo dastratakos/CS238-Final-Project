@@ -60,6 +60,16 @@ def load_level(level_id, num_manual_players=1, num_ai_players=0):
                         element_sprite_group,
                     )
                 )
+                # if elements[-1].collision_type == CollisionType.SPIKE:
+                #     tmp = elements[-1]
+                #     mask = [[" " for _ in range(BLOCK_SIZE)] for _ in range(BLOCK_SIZE)]
+                #     for i in range(BLOCK_SIZE):
+                #         for j in range(BLOCK_SIZE):
+                #             if tmp.mask.get_at((i, j)):
+                #                 mask[i][j] = "*"
+                #     print("\n".join(["".join(row) for row in mask]))
+                #     if id == "23":
+                #         breakpoint()
             x += BLOCK_SIZE
         x = 0
         y += BLOCK_SIZE
@@ -94,12 +104,13 @@ def check_collisions(
 ):
     for player in players:
         if pygame.sprite.collide_rect(player, floor):
-            player.rect.bottom = floor.rect.top + 1
+            player.rect.bottom = floor.rect.top
             player.velocity.y = 0
             player.should_jump = False
             player.on_ground = True
         for element in elements:
-            if pygame.sprite.collide_rect(player, element):
+            # if pygame.sprite.collide_rect(player, element):
+            if pygame.sprite.collide_mask(player, element):
                 if element.collision_type in [
                     CollisionType.SOLID,
                     CollisionType.SOLID_TOP,
@@ -108,7 +119,7 @@ def check_collisions(
                     if not player.gravity_reversed:
                         if player.velocity.y > 0:  # player is falling
                             print("Collision and player falling")
-                            player.rect.bottom = element.rect.top + 1
+                            player.rect.bottom = element.rect.top
                             player.velocity.y = 0
                             player.on_ground = True
                             player.should_jump = False
@@ -119,6 +130,8 @@ def check_collisions(
                             # player.velocity = Vector2(0, 0)
                             # player.rect.right = element.rect.left
                             print("You lose (solid)!")
+                            print(player.rect)
+                            print(element.rect)
                             breakpoint()
                     else:
                         if player.velocity.y < 0:  # player is falling
@@ -129,7 +142,7 @@ def check_collisions(
                             player.should_jump = False
                         elif player.velocity.y > 0:  # player is jumping
                             print("Collision and player jumping")
-                            player.rect.bottom = element.rect.top + 1
+                            player.rect.bottom = element.rect.top
                         else:  # player is going forward
                             # player.velocity = Vector2(0, 0)
                             # player.rect.right = element.rect.left
@@ -137,6 +150,8 @@ def check_collisions(
                 elif element.collision_type == CollisionType.SPIKE:
                     # player.velocity = Vector2(0, 0)
                     print("You lose (spike)!")
+                    print(player.rect)
+                    print(element.rect)
                     breakpoint()
                 elif element.collision_type == CollisionType.PORTAL:
                     # TODO: Don't run this multiple times for same portal
@@ -239,9 +254,8 @@ def play(
 
         # 3. Redraw
         tile_sprite_group.draw(screen)
-        floor_sprite_group.draw(screen)
-        # for floor in floor_sprite_group:
-        #     screen.blit(floor.image, floor.rect.move(-camera.x, -camera.y))
+        for floor in floor_sprite_group:
+            screen.blit(floor.image, floor.rect.move(-camera.x, -camera.y))
 
         alpha_surface.fill((255, 255, 255, 1), special_flags=pygame.BLEND_RGBA_MULT)
         for player in players:
@@ -253,16 +267,10 @@ def play(
                 )
         screen.blit(alpha_surface, (0, 0))
 
-        # element_sprite_group.draw(screen)
         for element in element_sprite_group:
             screen.blit(element.image, element.rect.move(-camera.x, -camera.y))
         for player in player_sprite_group:
             screen.blit(player.image, player.rect.move(-camera.x, -camera.y))
-        # if player.should_jump:
-        #     screen.blit(player.image, player.position)
-        # else:
-        #     # screen.blit(player.image, player.position)
-        #     player_sprite_group.draw(screen)
 
         pygame.display.flip()
         clock.tick(60)
