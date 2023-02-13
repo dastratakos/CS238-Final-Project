@@ -13,8 +13,8 @@ from config import (
     VELOCITY_JUMP,
     VELOCITY_JUMP_PAD,
     VELOCITY_JUMP_ORB,
+    CollisionType,
 )
-from elements import CollisionType
 from jump_controller import JumpController
 
 

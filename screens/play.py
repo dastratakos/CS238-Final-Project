@@ -4,9 +4,15 @@ import time
 import pygame
 from pygame.math import Vector2
 
-from config import BLOCK_SIZE, SCREEN_BLOCKS, SCREEN_SIZE, VELOCITY_X
+from config import (
+    BLOCK_SIZE,
+    SCREEN_BLOCKS,
+    SCREEN_SIZE,
+    VELOCITY_X,
+    ELEMENTS,
+    CollisionType,
+)
 from components.progress_bar import ProgressBar
-from elements import ELEMENTS, CollisionType
 from jump_controller import JumpControllerManual, JumpControllerAI
 from sprite import TiledSprite, Player, ElementSprite
 from utils import load_map, get_sprite_image, load_image
