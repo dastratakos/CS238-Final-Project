@@ -26,7 +26,11 @@ class ImageSprite(Sprite):
     def __init__(self, position: tuple, image: pygame.image, *groups):
         super().__init__(position, *groups)
         self.image = image
-        self.rect = self.image.get_rect(center=position)
+        cenetered_position = (
+            position[0] + image.get_width() / 2,
+            position[1] + image.get_height() / 2,
+        )
+        self.rect = self.image.get_rect(center=cenetered_position)
 
 
 class TiledSprite(ImageSprite):
@@ -62,14 +66,21 @@ class ElementSprite(ImageSprite):
     def __init__(
         self,
         position: tuple,
+        velocity: Vector2,
         image: pygame.image,
         collision_type: CollisionType = CollisionType.NONE,
         action_type: ActionType = ActionType.NONE,
         *groups,
     ):
         super().__init__(position, image, *groups)
+        self.velocity = velocity
+
         self.collision_type = collision_type
         self.action_type = action_type
+
+    def update(self):
+        self.rect.x += self.velocity.x
+        self.rect.y += self.velocity.y
 
 
 class Particle(Sprite):
@@ -107,7 +118,7 @@ class Player(ImageSprite):
         self.velocity_jump = VELOCITY_JUMP
         self.velocity_jump_orb = VELOCITY_JUMP_ORB
 
-        self.reverse_gravity = False  # TODO
+        self.gravity_reversed = False  # TODO
         self.flying = False  # TODO
 
         self.should_jump = False
@@ -118,7 +129,8 @@ class Player(ImageSprite):
 
         self.jump_controller = jump_controller
 
-    def rotate(self):
+    def rotate_image(self, pivot: Vector2):
+        return
         if self.angle == 0:
             self.image = self.original_image
             return
@@ -133,7 +145,6 @@ class Player(ImageSprite):
         y_offset = max([point.y for point in rotated_box])
 
         # Calculate the translation of the pivot
-        pivot = Vector2(BLOCK_SIZE / 2, -BLOCK_SIZE / 2)
         pivot_rotate = pivot.rotate(self.angle)
         pivot_move = pivot_rotate - pivot
 
@@ -145,47 +156,53 @@ class Player(ImageSprite):
 
         self.image = pygame.transform.rotozoom(self.original_image, self.angle, 1)
 
-    def update_new(self):
-        # 1. Update positionition, velocity, and angle
-        # 2. Check for collisions
-        # 3. Render
-        if self.jump_controller.should_jump:
+    def update(self):
+        if self.jump_controller.should_jump():
             self.should_jump = True
 
-        if self.should_jump and self.on_ground:
-            # perform the jump
-            self.should_jump = False
-            self.on_ground = False
-            self.velocity.y = -self.velocity_jump
-
         if self.on_ground:
+            if self.should_jump:
+                # Perform the jump
+                self.should_jump = False
+                self.velocity.y = -self.velocity_jump
+
             # Add a particle
             self.particles.append(
                 Particle(
                     (self.rect.left - 6, self.rect.bottom - 6),
-                    (random.randint(0, 25) / 10 - 1, 0),
+                    (random.randint(0, 25) / 10 - 1, random.randint(0, 8) / 10 - 1),
                     random.randint(10, 16),
                 )
             )
             # Round the angle to the nearest 90 deg
-            # print("Old angle: ", self.angle)
+            # TODO: fix glitch where cube goes below ground
+            # TODO: rotate instead of jumping to that angle
+            old_angle = self.angle % 360
             self.angle = 90 * round(self.angle / 90) % 360
-            # self.angle = 90 * math.ceil(self.angle / 90) % 360
-            # print("New angle: ", self.angle)
-            self.rotate()
+            
+            pivot = Vector2(BLOCK_SIZE / 2, -BLOCK_SIZE / 2)
+            self.rotate_image(pivot)
+            
+            # top_left = Vector2(0, 0)
+            # top_right = Vector2(0, BLOCK_SIZE)
+            # center = Vector2(BLOCK_SIZE / 2, BLOCK_SIZE / 2)
+            # bottom_left = Vector2(0, BLOCK_SIZE)
+            # bottom_right = Vector2(BLOCK_SIZE, BLOCK_SIZE)
+            # self.rotate_image(bottom_right if old_angle < self.angle else bottom_left)
         else:
-            self.velocity.y = min(self.velocity.y + GRAVITY, VELOCITY_MAX_FALL)
-            self.angle -= (180 * GRAVITY) / (2 * self.velocity_jump)
-            self.rotate()
-
-        self.on_ground = False
-
-        self.rect.top += self.velocity.y
-        # if self.rect.top > BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4) - BLOCK_SIZE:
-        #     self.rect.top = BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4) - BLOCK_SIZE
-        #     self.velocity.y = 0
-        #     self.should_jump = False
-        #     self.on_ground = True
+            if not self.gravity_reversed:
+                # Apply gravity
+                self.velocity.y = min(self.velocity.y + GRAVITY, VELOCITY_MAX_FALL)
+            else:
+                # Apply reverse gravity
+                self.velocity.y = max(self.velocity.y - GRAVITY, -VELOCITY_MAX_FALL)
+            if not self.flying:
+                # Rotate the player
+                # self.angle -= (180 * GRAVITY) / (2 * self.velocity_jump)
+                # self.angle -= 8.1712
+                self.angle -= 7.2
+                pivot = Vector2(BLOCK_SIZE / 2, -BLOCK_SIZE / 2)
+                self.rotate_image(pivot)
 
         # Remove old particles
         for particle in self.particles:
@@ -193,50 +210,9 @@ class Player(ImageSprite):
             if particle.ttl <= 0:
                 self.particles.remove(particle)
 
-    def update(self):
-        if self.should_jump:
-            if self.on_ground:
-                self.velocity.y = -self.velocity_jump
-            else:  # Don't rotate on the first frame
-                # the angle to do a 180 deg turn in one jump
-                self.angle -= (180 * GRAVITY) / (2 * self.velocity_jump)
-                self.rotate()
+        # Move the player
+        self.rect.x += self.velocity.x
+        self.rect.y += self.velocity.y
 
-        if not self.on_ground:
-            self.velocity.y = min(self.velocity.y + GRAVITY, VELOCITY_MAX_FALL)
-
-        # # If jumping, compute the rotated image
-        # if self.should_jump:
-        #     # the angle to do a 180 deg turn in one jump
-        #     self.angle -= (180 * GRAVITY) / (2 * self.velocity_jump)
-        #     self.rotate()
-
-        # Update particle trail
-        if self.on_ground:
-            self.particles.append(
-                Particle(
-                    (self.rect.left - 6, self.rect.bottom - 6),
-                    (random.randint(0, 25) / 10 - 1, 0),
-                    random.randint(10, 16),
-                )
-            )
-            # If on the ground, round the angle to the nearest 90 deg
-            # print("Old angle: ", self.angle)
-            self.angle = 90 * round(self.angle / 90) % 360
-            # self.angle = 90 * math.ceil(self.angle / 90) % 360
-            # print("New angle: ", self.angle)
-            self.rotate()
-
-        for particle in self.particles:
-            particle.update()
-            if particle.ttl <= 0:
-                self.particles.remove(particle)
-
+        # Reset the on_ground flag. It will be set again in play.check_collisions()
         self.on_ground = False
-
-        self.rect.top += self.velocity.y
-        if self.rect.top > BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4) - BLOCK_SIZE:
-            self.rect.top = BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4) - BLOCK_SIZE
-            self.velocity.y = 0
-            self.should_jump = False
-            self.on_ground = True

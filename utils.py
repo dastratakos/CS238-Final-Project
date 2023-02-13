@@ -27,7 +27,7 @@ def load_map(level_id):
     return map
 
 
-def get_sprite_image(id):
-    if os.path.exists(f"assets/tiles/tile-{id}.png"):
-        return load_image(f"assets/tiles/tile-{id}.png")
+def get_sprite_image(filename):
+    if os.path.exists(filename):
+        return load_image(filename)
     return None
