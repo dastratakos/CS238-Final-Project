@@ -3,7 +3,7 @@ import os
 
 import pygame
 
-from config import BLOCK_SIZE
+from config import BLOCK_SIZE, LEVELS
 
 
 def resize_image(image, size=(BLOCK_SIZE, BLOCK_SIZE)):
@@ -15,7 +15,7 @@ def load_image(filename, size=(BLOCK_SIZE, BLOCK_SIZE)):
 
 
 def load_map(level_id):
-    filename = f"maps/{level_id}.csv"
+    filename = LEVELS[level_id]["filename"]
     with open(filename) as f:
         reader = csv.reader(f)
         map = []
