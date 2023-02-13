@@ -78,7 +78,6 @@ class ElementSprite(ImageSprite):
         self.velocity = velocity
 
         self.collision_type = collision_type
-        self.action_type = action_type
 
     def update(self):
         self.rect.x += self.velocity.x

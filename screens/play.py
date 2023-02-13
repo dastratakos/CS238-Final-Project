@@ -50,7 +50,12 @@ def load_level(map, num_manual_players=1, num_ai_players=0):
     x, y = 0, -(len(map) - SCREEN_BLOCKS[1] + 4) * BLOCK_SIZE
     for row in map:
         for id in row:
-            is_portal = ELEMENTS[id]["collision_type"] == CollisionType.PORTAL
+            is_portal = ELEMENTS[id]["collision_type"] in [
+                CollisionType.PORTAL_FLY_START,
+                CollisionType.PORTAL_FLY_END,
+                CollisionType.PORTAL_GRAVITY_REVERSE,
+                CollisionType.PORTAL_GRAVITY_NORMAL,
+            ]
             image = get_sprite_image(
                 ELEMENTS[id]["filename"],
                 (
@@ -68,7 +73,6 @@ def load_level(map, num_manual_players=1, num_ai_players=0):
                         Vector2(0, 0),
                         image,
                         ELEMENTS[id]["collision_type"],
-                        ELEMENTS[id]["action_type"],
                         element_sprite_group,
                     )
                 )
@@ -165,9 +169,9 @@ def check_collisions(
                     player.flying = True
                 elif element.collision_type == CollisionType.PORTAL_FLY_END:
                     player.flying = False
-                elif element.action_type == CollisionType.PORTAL_GRAVITY_REVERSE:
+                elif element.collision_type == CollisionType.PORTAL_GRAVITY_REVERSE:
                     player.gravity_reversed = True
-                elif element.action_type == CollisionType.PORTAL_GRAVITY_NORMAL:
+                elif element.collision_type == CollisionType.PORTAL_GRAVITY_NORMAL:
                     player.gravity_reversed = False
                 elif element.collision_type == CollisionType.JUMP_PAD:
                     player.velocity.y = -player.velocity_jump_pad

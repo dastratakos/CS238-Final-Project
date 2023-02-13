@@ -206,7 +206,7 @@ ELEMENTS = {
         "name": "grid empty",
         "filename": "assets/elements/element-19.png",
         "collision_type": CollisionType.NONE,
-    },  #
+    },
     "38": {
         "name": "spike left",
         "filename": "assets/elements/element-38.png",
