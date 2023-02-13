@@ -39,6 +39,12 @@ def menu(screen: pygame.Surface, clock: pygame.time.Clock):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     go_to_play = True
+                elif event.key == pygame.K_LEFT:
+                    level_id = (level_id - 2) % len(LEVELS) + 1
+                    level_button.text = f"Level {level_id}: {LEVELS[level_id]['name']}"
+                elif event.key == pygame.K_RIGHT:
+                    level_id = level_id % len(LEVELS) + 1
+                    level_button.text = f"Level {level_id}: {LEVELS[level_id]['name']}"
 
         # Redraw
         screen.blit(background, (0, 0))

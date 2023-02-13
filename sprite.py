@@ -8,13 +8,13 @@ from utils import load_image, resize_image
 
 from config import (
     BLOCK_SIZE,
-    SCREEN_BLOCKS,
     GRAVITY,
     VELOCITY_MAX_FALL,
     VELOCITY_JUMP,
+    VELOCITY_JUMP_PAD,
     VELOCITY_JUMP_ORB,
 )
-from elements import CollisionType, ActionType
+from elements import CollisionType
 from jump_controller import JumpController
 
 
@@ -72,7 +72,6 @@ class ElementSprite(ImageSprite):
         velocity: Vector2,
         image: pygame.image,
         collision_type: CollisionType = CollisionType.NONE,
-        action_type: ActionType = ActionType.NONE,
         *groups,
     ):
         super().__init__(position, image, *groups)
@@ -128,6 +127,7 @@ class Player(ImageSprite):
 
         self.velocity = velocity
         self.velocity_jump = VELOCITY_JUMP
+        self.velocity_jump_pad = VELOCITY_JUMP_PAD
         self.velocity_jump_orb = VELOCITY_JUMP_ORB
 
         self.gravity_reversed = False

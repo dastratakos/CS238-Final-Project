@@ -6,7 +6,7 @@ from pygame.math import Vector2
 
 from config import BLOCK_SIZE, SCREEN_BLOCKS, SCREEN_SIZE, VELOCITY_X
 from components.progress_bar import ProgressBar
-from elements import ELEMENTS, CollisionType, ActionType
+from elements import ELEMENTS, CollisionType
 from jump_controller import JumpControllerManual, JumpControllerAI
 from sprite import TiledSprite, Player, ElementSprite
 from utils import load_map, get_sprite_image, load_image
@@ -93,7 +93,6 @@ def load_level(map, num_manual_players=1, num_ai_players=0):
         Vector2(VELOCITY_X, 0),
         load_image("assets/highlight.png", (SCREEN_SIZE[0], 2.5)),
         CollisionType.SOLID,
-        ActionType.NONE,
         floor_sprite_group,
     )
 
@@ -112,7 +111,10 @@ def load_level(map, num_manual_players=1, num_ai_players=0):
 
 
 def check_collisions(
-    players: list[Player], elements: list[ElementSprite], floor: ElementSprite
+    players: list[Player],
+    elements: list[ElementSprite],
+    floor: ElementSprite,
+    stop_when_die=False,
 ):
     for player in players:
         if pygame.sprite.collide_rect(player, floor):
@@ -129,58 +131,52 @@ def check_collisions(
                 ]:
                     if not player.gravity_reversed:
                         if player.velocity.y > 0:  # player is falling
-                            print("Collision and player falling")
                             player.rect.bottom = element.rect.top
                             player.velocity.y = 0
                             player.on_ground = True
                             player.should_jump = False
                         elif player.velocity.y < 0:  # player is jumping
-                            print("Collision and player jumping")
                             player.rect.top = element.rect.bottom
                         else:  # player is going forward
-                            # player.velocity = Vector2(0, 0)
-                            # player.rect.right = element.rect.left
-                            print("You lose (solid)!")
-                            print(player.rect)
-                            print(element.rect)
+                            if stop_when_die:
+                                player.velocity = Vector2(0, 0)
+                                player.rect.right = element.rect.left
+                            print(time.time(), "You lose (solid)!")
                             # breakpoint()
                     else:
                         if player.velocity.y < 0:  # player is falling
-                            print("Collision and player falling")
                             player.rect.top = element.rect.bottom
                             player.velocity.y = 0
                             player.on_ground = True
                             player.should_jump = False
                         elif player.velocity.y > 0:  # player is jumping
-                            print("Collision and player jumping")
                             player.rect.bottom = element.rect.top
                         else:  # player is going forward
-                            # player.velocity = Vector2(0, 0)
-                            # player.rect.right = element.rect.left
-                            print("You lose (solid - reverse gravity)!")
+                            if stop_when_die:
+                                player.velocity = Vector2(0, 0)
+                                player.rect.right = element.rect.left
+                            print(time.time(), "You lose (solid - reverse gravity)!")
                 elif element.collision_type == CollisionType.SPIKE:
-                    # player.velocity = Vector2(0, 0)
-                    print("You lose (spike)!")
-                    print(player.rect)
-                    print(element.rect)
+                    if stop_when_die:
+                        player.velocity = Vector2(0, 0)
+                    print(time.time(), "You lose (spike)!")
                     # breakpoint()
-                elif element.collision_type == CollisionType.PORTAL:
-                    # TODO: Don't run this multiple times for same portal
-                    if element.action_type == ActionType.FLY:
-                        player.flying = not player.flying
-                        print(player.flying)
-                    elif element.action_type == ActionType.GRAVITY:
-                        player.gravity_reversed = not player.gravity_reversed
+                elif element.collision_type == CollisionType.PORTAL_FLY_START:
+                    player.flying = True
+                elif element.collision_type == CollisionType.PORTAL_FLY_END:
+                    player.flying = False
+                elif element.action_type == CollisionType.PORTAL_GRAVITY_REVERSE:
+                    player.gravity_reversed = True
+                elif element.action_type == CollisionType.PORTAL_GRAVITY_NORMAL:
+                    player.gravity_reversed = False
                 elif element.collision_type == CollisionType.JUMP_PAD:
-                    player.velocity.y = -player.velocity_jump
-                    # player.position.y += player.velocity.y
+                    player.velocity.y = -player.velocity_jump_pad
                 elif element.collision_type == CollisionType.JUMP_ORB:
                     if pygame.key.get_pressed()[pygame.K_SPACE]:
                         player.velocity.y = -player.velocity_jump_orb
-                        # player.position.y += player.velocity.y
                 elif element.collision_type == CollisionType.END:
-                    print("You win!")
                     player.velocity = Vector2(0, 0)
+                    print(time.time(), "You win!")
 
 
 def play(
@@ -267,7 +263,7 @@ def play(
         player_sprite_group.update()
         floor_sprite_group.update()
 
-        # camera.x += VELOCITY_X
+        camera.x += VELOCITY_X
         # camera.y += player.velocity.y
 
         progress_bar.progress = camera.x / (len(map[0]) * BLOCK_SIZE)
