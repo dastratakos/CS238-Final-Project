@@ -131,7 +131,7 @@ class Player(ImageSprite):
         self.velocity_jump_orb = VELOCITY_JUMP_ORB
 
         self.gravity_reversed = False
-        self.flying = True
+        self.flying = False
 
         self.should_jump = False
         self.on_ground = False
@@ -200,7 +200,7 @@ class Player(ImageSprite):
                     # Perform the jump
                     self.should_jump = False
                     self.velocity.y = self.velocity_jump * (
-                        -1 if self.gravity_reversed else 1
+                        1 if self.gravity_reversed else -1
                     )
 
                 self.add_particle()

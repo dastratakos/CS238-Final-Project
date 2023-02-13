@@ -5,6 +5,7 @@ import pygame
 from pygame.math import Vector2
 
 from config import BLOCK_SIZE, SCREEN_BLOCKS, SCREEN_SIZE, VELOCITY_X
+from components.progress_bar import ProgressBar
 from elements import ELEMENTS, CollisionType, ActionType
 from jump_controller import JumpControllerManual, JumpControllerAI
 from sprite import TiledSprite, Player, ElementSprite
@@ -16,7 +17,7 @@ class Camera:
         self.x, self.y = x, y
 
 
-def load_level(level_id, num_manual_players=1, num_ai_players=0):
+def load_level(map, num_manual_players=1, num_ai_players=0):
     # Create the players
     player_sprite_group = pygame.sprite.Group()
     players = []
@@ -46,15 +47,24 @@ def load_level(level_id, num_manual_players=1, num_ai_players=0):
     # Create the elements
     element_sprite_group = pygame.sprite.Group()
     elements = []
-    map = load_map(level_id)
     x, y = 0, -(len(map) - SCREEN_BLOCKS[1] + 4) * BLOCK_SIZE
     for row in map:
         for id in row:
-            image = get_sprite_image(ELEMENTS[id]["filename"])
+            is_portal = ELEMENTS[id]["collision_type"] == CollisionType.PORTAL
+            image = get_sprite_image(
+                ELEMENTS[id]["filename"],
+                (
+                    BLOCK_SIZE * (2 if is_portal else 1),
+                    BLOCK_SIZE * (2 if is_portal else 1),
+                ),
+            )
             if image:
                 elements.append(
                     ElementSprite(
-                        (x, y),
+                        (
+                            x - (BLOCK_SIZE if is_portal else 0),
+                            y - (BLOCK_SIZE if is_portal else 0),
+                        ),
                         Vector2(0, 0),
                         image,
                         ELEMENTS[id]["collision_type"],
@@ -111,7 +121,6 @@ def check_collisions(
             player.should_jump = False
             player.on_ground = True
         for element in elements:
-            # if pygame.sprite.collide_rect(player, element):
             if pygame.sprite.collide_mask(player, element):
                 if element.collision_type in [
                     CollisionType.SOLID,
@@ -134,7 +143,7 @@ def check_collisions(
                             print("You lose (solid)!")
                             print(player.rect)
                             print(element.rect)
-                            breakpoint()
+                            # breakpoint()
                     else:
                         if player.velocity.y < 0:  # player is falling
                             print("Collision and player falling")
@@ -154,11 +163,12 @@ def check_collisions(
                     print("You lose (spike)!")
                     print(player.rect)
                     print(element.rect)
-                    breakpoint()
+                    # breakpoint()
                 elif element.collision_type == CollisionType.PORTAL:
                     # TODO: Don't run this multiple times for same portal
                     if element.action_type == ActionType.FLY:
                         player.flying = not player.flying
+                        print(player.flying)
                     elif element.action_type == ActionType.GRAVITY:
                         player.gravity_reversed = not player.gravity_reversed
                 elif element.collision_type == CollisionType.JUMP_PAD:
@@ -170,12 +180,13 @@ def check_collisions(
                         # player.position.y += player.velocity.y
                 elif element.collision_type == CollisionType.END:
                     print("You win!")
+                    player.velocity = Vector2(0, 0)
 
 
 def play(
     screen: pygame.Surface,
     clock: pygame.time.Clock,
-    level_id=1,
+    level_id,
     progress=0,
     # num_generations=100,
     # population_size=100,
@@ -186,6 +197,7 @@ def play(
     # clock=None,
     # debug=False,
 ):
+    map = load_map(level_id)
     (
         player_sprite_group,
         players,
@@ -194,7 +206,7 @@ def play(
         floor_sprite_group,
         floor,
         camera,
-    ) = load_level(level_id)
+    ) = load_level(map)
 
     alpha_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
 
@@ -223,6 +235,9 @@ def play(
             )
         )
 
+    # progress_bar = ProgressBar(SCREEN_SIZE[0] / 4, 30, SCREEN_SIZE[0] / 2, 100)
+    progress_bar = ProgressBar(SCREEN_SIZE[0] / 4, 30, SCREEN_SIZE[0] / 2, 20)
+
     go_to_pause = False
     while not go_to_pause:
         for event in pygame.event.get():
@@ -239,17 +254,23 @@ def play(
                         floor_sprite_group,
                         floor,
                         camera,
-                    ) = load_level(level_id)
+                    ) = load_level(map)
                 elif event.key == pygame.K_p:
                     go_to_pause = True
+        if pygame.key.get_pressed()[pygame.K_LEFT]:
+            camera.x -= VELOCITY_X * 5
+        if pygame.key.get_pressed()[pygame.K_RIGHT]:
+            camera.x += VELOCITY_X * 5
 
         # 1. Update tiles, players, and camera
         tile_sprite_group.update()
         player_sprite_group.update()
         floor_sprite_group.update()
 
-        camera.x += VELOCITY_X
+        # camera.x += VELOCITY_X
         # camera.y += player.velocity.y
+
+        progress_bar.progress = camera.x / (len(map[0]) * BLOCK_SIZE)
 
         # 2. Check for collisions and update players as necessary
         check_collisions(players, elements, floor)
@@ -276,6 +297,8 @@ def play(
                 player.ship_image if player.flying else player.image,
                 player.rect.move(-camera.x, -camera.y),
             )
+
+        progress_bar.draw(screen)
 
         pygame.display.flip()
         clock.tick(60)

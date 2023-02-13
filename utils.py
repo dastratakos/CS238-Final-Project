@@ -27,7 +27,7 @@ def load_map(level_id):
     return map
 
 
-def get_sprite_image(filename):
+def get_sprite_image(filename, size=(BLOCK_SIZE, BLOCK_SIZE)):
     if os.path.exists(filename):
-        return load_image(filename)
+        return load_image(filename, size=size)
     return None
