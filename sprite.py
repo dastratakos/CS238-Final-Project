@@ -4,6 +4,8 @@ import random
 import pygame
 from pygame.math import Vector2
 
+from utils import load_image, resize_image
+
 from config import (
     BLOCK_SIZE,
     SCREEN_BLOCKS,
@@ -108,10 +110,19 @@ class Player(ImageSprite):
         position: tuple,
         velocity: Vector2,
         image: pygame.image,
+        ship_image: pygame.image,
         jump_controller: JumpController,
         *groups,
     ):
         super().__init__(position, image, *groups)
+
+        # Build ship image
+        self.ship_image = load_image("assets/ships/blank.png")
+        self.ship_image.blit(
+            resize_image(image, (BLOCK_SIZE / 2, BLOCK_SIZE / 2)),
+            (BLOCK_SIZE / 4, BLOCK_SIZE / 4),
+        )
+        self.ship_image.blit(ship_image, (0, 0))
 
         self.particles = []
 
@@ -119,8 +130,8 @@ class Player(ImageSprite):
         self.velocity_jump = VELOCITY_JUMP
         self.velocity_jump_orb = VELOCITY_JUMP_ORB
 
-        self.gravity_reversed = False  # TODO
-        self.flying = False  # TODO
+        self.gravity_reversed = False
+        self.flying = True
 
         self.should_jump = False
         self.on_ground = False
@@ -157,47 +168,61 @@ class Player(ImageSprite):
 
         self.image = pygame.transform.rotozoom(self.original_image, self.angle, 1)
 
+    def add_particle(self):
+        self.particles.append(
+            Particle(
+                (self.rect.left - 6, self.rect.bottom - 6),
+                (random.randint(0, 25) / 10 - 1, random.randint(0, 8) / 10 - 1),
+                random.randint(10, 16),
+            )
+        )
+
+    def apply_gravity(self):
+        if not self.gravity_reversed:
+            self.velocity.y = min(self.velocity.y + GRAVITY, VELOCITY_MAX_FALL)
+        else:
+            self.velocity.y = max(self.velocity.y - GRAVITY, -VELOCITY_MAX_FALL)
+
     def update(self):
         if self.jump_controller.should_jump():
             self.should_jump = True
 
-        if self.on_ground:
+        if self.flying:
             if self.should_jump:
-                # Perform the jump
                 self.should_jump = False
-                self.velocity.y = -self.velocity_jump
+                self.velocity.y = -GRAVITY * 7
 
-            # Add a particle
-            self.particles.append(
-                Particle(
-                    (self.rect.left - 6, self.rect.bottom - 6),
-                    (random.randint(0, 25) / 10 - 1, random.randint(0, 8) / 10 - 1),
-                    random.randint(10, 16),
-                )
-            )
-            # Round the angle to the nearest 90 deg
-            # TODO: fix glitch where cube goes below ground
-            # TODO: rotate instead of jumping to that angle
-            old_angle = self.angle % 360
-            self.angle = 90 * round(self.angle / 90) % 360
-            
-            pivot = Vector2(BLOCK_SIZE / 2, -BLOCK_SIZE / 2)
-            self.rotate_image(pivot)
-            
-            # top_left = Vector2(0, 0)
-            # top_right = Vector2(0, BLOCK_SIZE)
-            # center = Vector2(BLOCK_SIZE / 2, BLOCK_SIZE / 2)
-            # bottom_left = Vector2(0, BLOCK_SIZE)
-            # bottom_right = Vector2(BLOCK_SIZE, BLOCK_SIZE)
-            # self.rotate_image(bottom_right if old_angle < self.angle else bottom_left)
+            self.add_particle()
+            self.apply_gravity()
         else:
-            if not self.gravity_reversed:
-                # Apply gravity
-                self.velocity.y = min(self.velocity.y + GRAVITY, VELOCITY_MAX_FALL)
+            if self.on_ground:
+                if self.should_jump:
+                    # Perform the jump
+                    self.should_jump = False
+                    self.velocity.y = self.velocity_jump * (
+                        -1 if self.gravity_reversed else 1
+                    )
+
+                self.add_particle()
+
+                # Round the angle to the nearest 90 deg
+                # TODO: fix glitch where cube goes below ground
+                # TODO: rotate instead of jumping to that angle
+                old_angle = self.angle % 360
+                self.angle = 90 * round(self.angle / 90) % 360
+
+                pivot = Vector2(BLOCK_SIZE / 2, -BLOCK_SIZE / 2)
+                self.rotate_image(pivot)
+
+                # top_left = Vector2(0, 0)
+                # top_right = Vector2(0, BLOCK_SIZE)
+                # center = Vector2(BLOCK_SIZE / 2, BLOCK_SIZE / 2)
+                # bottom_left = Vector2(0, BLOCK_SIZE)
+                # bottom_right = Vector2(BLOCK_SIZE, BLOCK_SIZE)
+                # self.rotate_image(bottom_right if old_angle < self.angle else bottom_left)
             else:
-                # Apply reverse gravity
-                self.velocity.y = max(self.velocity.y - GRAVITY, -VELOCITY_MAX_FALL)
-            if not self.flying:
+                self.apply_gravity()
+
                 # Rotate the player
                 # self.angle -= (180 * GRAVITY) / (2 * self.velocity_jump)
                 # self.angle -= 8.1712

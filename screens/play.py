@@ -26,6 +26,7 @@ def load_level(level_id, num_manual_players=1, num_ai_players=0):
                 (BLOCK_SIZE * 5 - random.randint(0, BLOCK_SIZE * 3), BLOCK_SIZE * 5),
                 Vector2(VELOCITY_X, 0),
                 load_image(f"assets/players/player-{random.randint(1, 20)}.png"),
+                load_image(f"assets/ships/ship-1.png"),
                 JumpControllerAI(),
                 player_sprite_group,
             )
@@ -36,6 +37,7 @@ def load_level(level_id, num_manual_players=1, num_ai_players=0):
                 (BLOCK_SIZE * 5, BLOCK_SIZE * 5),
                 Vector2(VELOCITY_X, 0),
                 load_image("assets/players/player-0.png"),
+                load_image(f"assets/ships/ship-1.png"),
                 JumpControllerManual(),
                 player_sprite_group,
             )
@@ -270,7 +272,10 @@ def play(
         for element in element_sprite_group:
             screen.blit(element.image, element.rect.move(-camera.x, -camera.y))
         for player in player_sprite_group:
-            screen.blit(player.image, player.rect.move(-camera.x, -camera.y))
+            screen.blit(
+                player.ship_image if player.flying else player.image,
+                player.rect.move(-camera.x, -camera.y),
+            )
 
         pygame.display.flip()
         clock.tick(60)
