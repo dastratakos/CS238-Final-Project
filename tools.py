@@ -14,8 +14,8 @@ def blue_shift():
     picture.save("assets/ground-new.png")
 
 
-def crop_tiles():
-    picture = Image.open("assets/tileSheet.png")
+def crop_elements():
+    picture = Image.open("assets/elements/element-sheet.png")
     size = 65
     idx = 1
     for i in range(4):
@@ -25,7 +25,7 @@ def crop_tiles():
                 for c in range(size):
                     x = min(r + j * size, 648)
                     im.putpixel((r, c), picture.getpixel((x, c + i * size)))
-            im.save(f"assets/tile-{idx}.png")
+            im.save(f"assets/elements/element-{idx}.png")
             idx += 1
 
 
@@ -69,4 +69,4 @@ def convert_map():
 
 
 if __name__ == "__main__":
-    pass
+    crop_elements()

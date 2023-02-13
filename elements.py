@@ -19,274 +19,274 @@ class ActionType(Enum):
     GRAVITY = 3
 
 
-tile_mappings = {
-    0: {
+ELEMENTS = {
+    "0": {
         "name": "Air",
-        "filename": f"assets/tiles/tile={0}.png",
+        "filename": f"assets/elements/element={0}.png",
         "collision_type": CollisionType.NONE,
         "action_type": ActionType.NONE,
     },
-    1: {
+    "1": {
         "name": "Square",
-        "filename": f"assets/tiles/tile={1}.png",
+        "filename": f"assets/elements/element={1}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    2: {
+    "2": {
         "name": "Spike",
-        "filename": f"assets/tiles/tile={2}.png",
+        "filename": f"assets/elements/element={2}.png",
         "collision_type": CollisionType.SPIKE,
         "action_type": ActionType.NONE,
     },
-    3: {
+    "3": {
         "name": "ShortSpike0",
-        "filename": f"assets/tiles/tile={3}.png",
+        "filename": f"assets/elements/element={3}.png",
         "collision_type": CollisionType.SPIKE,
         "action_type": ActionType.NONE,
     },
-    4: {
+    "4": {
         "name": "GridSquare0",
-        "filename": f"assets/tiles/tile={4}.png",
+        "filename": f"assets/elements/element={4}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    5: {
+    "5": {
         "name": "GridSquare1",
-        "filename": f"assets/tiles/tile={5}.png",
+        "filename": f"assets/elements/element={5}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    6: {
+    "6": {
         "name": "GridSquare2",
-        "filename": f"assets/tiles/tile={6}.png",
+        "filename": f"assets/elements/element={6}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    7: {
+    "7": {
         "name": "GridSquare3",
-        "filename": f"assets/tiles/tile={7}.png",
+        "filename": f"assets/elements/element={7}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    8: {
+    "8": {
         "name": "GridSquare4",
-        "filename": f"assets/tiles/tile={8}.png",
+        "filename": f"assets/elements/element={8}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    9: {
+    "9": {
         "name": "GridSquare5",
-        "filename": f"assets/tiles/tile={9}.png",
+        "filename": f"assets/elements/element={9}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    10: {
+    "10": {
         "name": "GridSquare6",
-        "filename": f"assets/tiles/tile={10}.png",
+        "filename": f"assets/elements/element={10}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    11: {
+    "11": {
         "name": "GridSquare7",
-        "filename": f"assets/tiles/tile={11}.png",
+        "filename": f"assets/elements/element={11}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    12: {
+    "12": {
         "name": "GridSquare8",
-        "filename": f"assets/tiles/tile={12}.png",
+        "filename": f"assets/elements/element={12}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    13: {
+    "13": {
         "name": "GridSquare9",
-        "filename": f"assets/tiles/tile={13}.png",
+        "filename": f"assets/elements/element={13}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    14: {
+    "14": {
         "name": "GridSquare10",
-        "filename": f"assets/tiles/tile={14}.png",
+        "filename": f"assets/elements/element={14}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    15: {
+    "15": {
         "name": "GridSquare11",
-        "filename": f"assets/tiles/tile={15}.png",
+        "filename": f"assets/elements/element={15}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    16: {
+    "16": {
         "name": "GridSquare12",
-        "filename": f"assets/tiles/tile={16}.png",
+        "filename": f"assets/elements/element={16}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    17: {
+    "17": {
         "name": "GridSquare13",
-        "filename": f"assets/tiles/tile={17}.png",
+        "filename": f"assets/elements/element={17}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    18: {
+    "18": {
         "name": "GridSquare14",
-        "filename": f"assets/tiles/tile={18}.png",
+        "filename": f"assets/elements/element={18}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    19: {
+    "19": {
         "name": "GridSquare15",
-        "filename": f"assets/tiles/tile={19}.png",
+        "filename": f"assets/elements/element={19}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    20: {
+    "20": {
         "name": "PlatformTop",
-        "filename": f"assets/tiles/tile={20}.png",
+        "filename": f"assets/elements/element={20}.png",
         "collision_type": CollisionType.SOLID_TOP,
         "action_type": ActionType.NONE,
     },
-    21: {
+    "21": {
         "name": "SpikeGround0",
-        "filename": f"assets/tiles/tile={21}.png",
+        "filename": f"assets/elements/element={21}.png",
         "collision_type": CollisionType.SPIKE,
         "action_type": ActionType.NONE,
     },
-    22: {
+    "22": {
         "name": "SpikeGround1",
-        "filename": f"assets/tiles/tile={22}.png",
+        "filename": f"assets/elements/element={22}.png",
         "collision_type": CollisionType.SPIKE,
         "action_type": ActionType.NONE,
     },
-    23: {
+    "23": {
         "name": "SpikeDown",
-        "filename": f"assets/tiles/tile={23}.png",
+        "filename": f"assets/elements/element={23}.png",
         "collision_type": CollisionType.SPIKE,
         "action_type": ActionType.NONE,
     },
-    24: {
+    "24": {
         "name": "ChainBottom",
-        "filename": f"assets/tiles/tile={24}.png",
+        "filename": f"assets/elements/element={24}.png",
         "collision_type": CollisionType.NONE,
         "action_type": ActionType.NONE,
     },
-    25: {
+    "25": {
         "name": "ChainMiddle",
-        "filename": f"assets/tiles/tile={25}.png",
+        "filename": f"assets/elements/element={25}.png",
         "collision_type": CollisionType.NONE,
         "action_type": ActionType.NONE,
     },
-    26: {
+    "26": {
         "name": "ChainTop",
-        "filename": f"assets/tiles/tile={26}.png",
+        "filename": f"assets/elements/element={26}.png",
         "collision_type": CollisionType.NONE,
         "action_type": ActionType.NONE,
     },
-    27: {
+    "27": {
         "name": "PlatformTopSpike",
-        "filename": f"assets/tiles/tile={27}.png",
+        "filename": f"assets/elements/element={27}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    28: {
+    "28": {
         "name": "GridSquare16",
-        "filename": f"assets/tiles/tile={28}.png",
+        "filename": f"assets/elements/element={28}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    29: {
+    "29": {
         "name": "GridSquare17",
-        "filename": f"assets/tiles/tile={29}.png",
+        "filename": f"assets/elements/element={29}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    30: {
+    "30": {
         "name": "GridSquare18",
-        "filename": f"assets/tiles/tile={30}.png",
+        "filename": f"assets/elements/element={30}.png",
         "collision_type": CollisionType.SOLID,
         "action_type": ActionType.NONE,
     },
-    31: {
+    "31": {
         "name": "PortalEntrance",
-        "filename": f"assets/tiles/tile={31}.png",
+        "filename": f"assets/elements/element={31}.png",
         "collision_type": CollisionType.PORTAL,
         "action_type": ActionType.FLY,
     },  #
-    32: {
+    "32": {
         "name": "PortalExit",
-        "filename": f"assets/tiles/tile={32}.png",
+        "filename": f"assets/elements/element={32}.png",
         "collision_type": CollisionType.PORTAL,
         "action_type": ActionType.FLY,
     },  #
-    33: {
+    "33": {
         "name": "JumpPad",
-        "filename": f"assets/tiles/tile={33}.png",
+        "filename": f"assets/elements/element={33}.png",
         "collision_type": CollisionType.JUMP_PAD,
         "action_type": ActionType.NONE,
     },
-    34: {
+    "34": {
         "name": "JumpOrb",
-        "filename": f"assets/tiles/tile={34}.png",
+        "filename": f"assets/elements/element={34}.png",
         "collision_type": CollisionType.JUMP_ORB,
         "action_type": ActionType.NONE,
     },  #
-    35: {
+    "35": {
         "name": "PortalInvert",
-        "filename": f"assets/tiles/tile={35}.png",
+        "filename": f"assets/elements/element={35}.png",
         "collision_type": CollisionType.PORTAL,
         "action_type": ActionType.GRAVITY,
     },  #
-    36: {
+    "36": {
         "name": "PortalRevert",
-        "filename": f"assets/tiles/tile={36}.png",
+        "filename": f"assets/elements/element={36}.png",
         "collision_type": CollisionType.PORTAL,
         "action_type": ActionType.GRAVITY,
     },  #
-    37: {
+    "37": {
         "name": "GridSquare19",
-        "filename": f"assets/tiles/tile={37}.png",
-        "collision_type": CollisionType.NONE,
+        "filename": f"assets/elements/element={37}.png",
+        "collision_type": CollisionType.SOLID_BOTTOM,
         "action_type": ActionType.NONE,
     },  #
-    38: {
+    "38": {
         "name": "SpikeLeft",
-        "filename": f"assets/tiles/tile={38}.png",
+        "filename": f"assets/elements/element={38}.png",
         "collision_type": CollisionType.SPIKE,
         "action_type": ActionType.NONE,
     },
-    39: {
+    "39": {
         "name": "SpikeRight",
-        "filename": f"assets/tiles/tile={39}.png",
+        "filename": f"assets/elements/element={39}.png",
         "collision_type": CollisionType.SPIKE,
         "action_type": ActionType.NONE,
     },
-    40: {
+    "40": {
         "name": "ShortSpikeDown",
-        "filename": f"assets/tiles/tile={40}.png",
+        "filename": f"assets/elements/element={40}.png",
         "collision_type": CollisionType.SPIKE,
         "action_type": ActionType.NONE,
     },
-    41: {
+    "41": {
         "name": "SpikeGround0Down",
-        "filename": f"assets/tiles/tile={41}.png",
+        "filename": f"assets/elements/element={41}.png",
         "collision_type": CollisionType.SPIKE,
         "action_type": ActionType.NONE,
     },
-    42: {
+    "42": {
         "name": "SpikeGround1Down",
-        "filename": f"assets/tiles/tile={42}.png",
+        "filename": f"assets/elements/element={42}.png",
         "collision_type": CollisionType.SPIKE,
         "action_type": ActionType.NONE,
     },
-    43: {
+    "43": {
         "name": "PlatformBottom",
-        "filename": f"assets/tiles/tile={43}.png",
-        "collision_type": CollisionType.PLATFORM_BOTTOM,
+        "filename": f"assets/elements/element={43}.png",
+        "collision_type": CollisionType.SOLID_BOTTOM,
         "action_type": ActionType.NONE,
     },
-    44: {
+    "44": {
         "name": "End",
-        "filename": f"assets/tiles/tile={44}.png",
+        "filename": f"assets/elements/element={44}.png",
         "collision_type": CollisionType.END,
         "action_type": ActionType.NONE,
     },
