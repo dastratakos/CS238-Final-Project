@@ -12,6 +12,7 @@ class ProgressBar:
         color=(79, 175, 7),
         highlight_color=(121, 214, 52),
         background_color=(175, 175, 175),
+        text_color=(255, 255, 255),
     ):
         self.x = x
         self.y = y
@@ -21,6 +22,7 @@ class ProgressBar:
         self.color = color
         self.highlight_color = highlight_color
         self.background_color = background_color
+        self.text_color = text_color
         self.rect = pygame.Rect(x, y, width, height)
 
     def draw(self, screen):
@@ -107,3 +109,10 @@ class ProgressBar:
             ),
             0,
         )
+
+        # text
+        font = pygame.font.Font(None, 36)
+        text = font.render(f"{(100 * self.progress):.2f}%", True, self.text_color)
+        text_rect = text.get_rect()
+        text_rect.midleft = (self.x + self.width + 10, self.y + self.height / 2)
+        screen.blit(text, text_rect)

@@ -23,14 +23,19 @@ class Camera:
         self.x, self.y = x, y
 
 
-def load_level(map, num_manual_players=1, num_ai_players=0):
+def load_level(map, progress=0, num_manual_players=1, num_ai_players=0):
     # Create the players
     player_sprite_group = pygame.sprite.Group()
     players = []
     for _ in range(num_ai_players):
         players.append(
             Player(
-                (BLOCK_SIZE * 5 - random.randint(0, BLOCK_SIZE * 3), BLOCK_SIZE * 5),
+                (
+                    BLOCK_SIZE * 5
+                    - random.randint(0, BLOCK_SIZE * 3)
+                    + progress * len(map[0]) * BLOCK_SIZE,
+                    BLOCK_SIZE * 5,
+                ),
                 Vector2(VELOCITY_X, 0),
                 load_image(f"assets/players/player-{random.randint(1, 20)}.png"),
                 load_image(f"assets/ships/ship-1.png"),
@@ -41,7 +46,7 @@ def load_level(map, num_manual_players=1, num_ai_players=0):
     for _ in range(num_manual_players):
         players.append(
             Player(
-                (BLOCK_SIZE * 5, BLOCK_SIZE * 5),
+                (BLOCK_SIZE * 5 + progress * len(map[0]) * BLOCK_SIZE, BLOCK_SIZE * 5),
                 Vector2(VELOCITY_X, 0),
                 load_image("assets/players/player-0.png"),
                 load_image(f"assets/ships/ship-1.png"),
@@ -82,16 +87,6 @@ def load_level(map, num_manual_players=1, num_ai_players=0):
                         element_sprite_group,
                     )
                 )
-                # if elements[-1].collision_type == CollisionType.SPIKE:
-                #     tmp = elements[-1]
-                #     mask = [[" " for _ in range(BLOCK_SIZE)] for _ in range(BLOCK_SIZE)]
-                #     for i in range(BLOCK_SIZE):
-                #         for j in range(BLOCK_SIZE):
-                #             if tmp.mask.get_at((i, j)):
-                #                 mask[i][j] = "*"
-                #     print("\n".join(["".join(row) for row in mask]))
-                #     if id == "23":
-                #         breakpoint()
             x += BLOCK_SIZE
         x = 0
         y += BLOCK_SIZE
@@ -99,7 +94,7 @@ def load_level(map, num_manual_players=1, num_ai_players=0):
     # Create the floor
     floor_sprite_group = pygame.sprite.Group()
     floor = ElementSprite(
-        (0, BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4)),
+        (progress * len(map[0]) * BLOCK_SIZE, BLOCK_SIZE * (SCREEN_BLOCKS[1] - 4)),
         Vector2(VELOCITY_X, 0),
         load_image("assets/highlight.png", (SCREEN_SIZE[0], 2.5)),
         CollisionType.SOLID,
@@ -107,7 +102,7 @@ def load_level(map, num_manual_players=1, num_ai_players=0):
     )
 
     # Create the camera
-    camera = Camera()
+    camera = Camera(progress * len(map[0]) * BLOCK_SIZE, 0)
 
     return (
         player_sprite_group,
@@ -212,7 +207,7 @@ def play(
         floor_sprite_group,
         floor,
         camera,
-    ) = load_level(map)
+    ) = load_level(map, progress)
 
     alpha_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
 
@@ -241,8 +236,7 @@ def play(
             )
         )
 
-    # progress_bar = ProgressBar(SCREEN_SIZE[0] / 4, 30, SCREEN_SIZE[0] / 2, 100)
-    progress_bar = ProgressBar(SCREEN_SIZE[0] / 4, 30, SCREEN_SIZE[0] / 2, 20)
+    progress_bar = ProgressBar(SCREEN_SIZE[0] / 4, 30, SCREEN_SIZE[0] / 2, 20, progress)
 
     go_to_pause = False
     while not go_to_pause:
@@ -260,7 +254,7 @@ def play(
                         floor_sprite_group,
                         floor,
                         camera,
-                    ) = load_level(map)
+                    ) = load_level(map, 0)
                 elif event.key == pygame.K_p:
                     go_to_pause = True
         if pygame.key.get_pressed()[pygame.K_LEFT]:
@@ -312,5 +306,4 @@ def play(
     if go_to_pause:
         from screens.pause import pause
 
-        # TODO: add progress = full width / camera.x
-        pause(screen, clock, level_id)
+        pause(screen, clock, level_id, progress_bar.progress)

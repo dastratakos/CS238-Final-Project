@@ -4,7 +4,7 @@ from components.button import Button
 from config import SCREEN_SIZE
 
 
-def pause(screen: pygame.Surface, clock: pygame.time.Clock, level_id=1, progress=42):
+def pause(screen: pygame.Surface, clock: pygame.time.Clock, level_id=1, progress=0):
     background = pygame.image.load("assets/background.png")
 
     menu_button = Button(100, (SCREEN_SIZE[1] - 100) // 2, 100, 100, "Menu")

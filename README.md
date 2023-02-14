@@ -22,4 +22,5 @@ python main.py
 - [ ] Render portals
 - [ ] Test fly/gravity portals (gravity too strong)
 - [ ] Implement AI using generative learning (`JumpControllerAI` in `jump_controller.py`)
+- [ ] Add ability to save progress
 - [x] Progress bar
