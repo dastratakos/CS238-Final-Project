@@ -4,7 +4,7 @@ import random
 import pygame
 from pygame.math import Vector2
 
-from utils import load_image, resize_image
+from utils import load_image, resize_image, rotate_image
 
 from config import (
     BLOCK_SIZE,
@@ -121,6 +121,7 @@ class Player(ImageSprite):
             (BLOCK_SIZE / 4, BLOCK_SIZE / 4),
         )
         self.ship_image.blit(ship_image, (0, 0))
+        self.original_ship_image = self.ship_image
 
         self.particles = []
 
@@ -139,33 +140,6 @@ class Player(ImageSprite):
         self.angle = 0
 
         self.jump_controller = jump_controller
-
-    def rotate_image(self, pivot: Vector2):
-        return
-        if self.angle == 0:
-            self.image = self.original_image
-            return
-
-        rotated_box = [
-            Vector2((0, 0)).rotate(self.angle),
-            Vector2((BLOCK_SIZE, 0)).rotate(self.angle),
-            Vector2((BLOCK_SIZE, -BLOCK_SIZE)).rotate(self.angle),
-            Vector2((0, -BLOCK_SIZE)).rotate(self.angle),
-        ]
-        x_offset = min([point.x for point in rotated_box])
-        y_offset = max([point.y for point in rotated_box])
-
-        # Calculate the translation of the pivot
-        pivot_rotate = pivot.rotate(self.angle)
-        pivot_move = pivot_rotate - pivot
-
-        # Calculate the upper-left position of the rotated image
-        self.position = (
-            self.rect.center[0] - BLOCK_SIZE / 2 + x_offset - pivot_move[0],
-            self.rect.center[1] - BLOCK_SIZE / 2 - y_offset + pivot_move[1],
-        )
-
-        self.image = pygame.transform.rotozoom(self.original_image, self.angle, 1)
 
     def add_particle(self):
         self.particles.append(
@@ -186,17 +160,28 @@ class Player(ImageSprite):
         if self.jump_controller.should_jump():
             self.should_jump = True
 
+        self.apply_gravity()
         if self.flying:
             if self.should_jump:
                 self.should_jump = False
                 self.velocity.y = -GRAVITY * 7
+            #     self.angle = min(self.angle + 7.2, 20)
+            # else:
+            #     self.angle = max(self.angle - 7.2, 0)
+
+            # rotated_image, rotated_image_rect = rotate_image(
+            #     self.original_ship_image,
+            #     self.rect.midleft,
+            #     Vector2(0, BLOCK_SIZE / 2),
+            #     self.angle,
+            # )
+            # self.ship_image = rotated_image
+            # self.rect = rotated_image_rect
 
             self.add_particle()
-            self.apply_gravity()
         else:
             if self.on_ground:
                 if self.should_jump:
-                    # Perform the jump
                     self.should_jump = False
                     self.velocity.y = self.velocity_jump * (
                         1 if self.gravity_reversed else -1
@@ -205,29 +190,51 @@ class Player(ImageSprite):
                 self.add_particle()
 
                 # Round the angle to the nearest 90 deg
-                # TODO: fix glitch where cube goes below ground
-                # TODO: rotate instead of jumping to that angle
-                old_angle = self.angle % 360
-                self.angle = 90 * round(self.angle / 90) % 360
+                angle_radians = math.radians(135 - ((self.angle - 1) % 90 + 1))
 
-                pivot = Vector2(BLOCK_SIZE / 2, -BLOCK_SIZE / 2)
-                self.rotate_image(pivot)
+                off_x = (BLOCK_SIZE * math.sqrt(2) / 2) * math.cos(angle_radians)
+                off_y = (BLOCK_SIZE * math.sqrt(2) / 2) * math.sin(angle_radians)
 
-                # top_left = Vector2(0, 0)
-                # top_right = Vector2(0, BLOCK_SIZE)
-                # center = Vector2(BLOCK_SIZE / 2, BLOCK_SIZE / 2)
-                # bottom_left = Vector2(0, BLOCK_SIZE)
-                # bottom_right = Vector2(BLOCK_SIZE, BLOCK_SIZE)
-                # self.rotate_image(bottom_right if old_angle < self.angle else bottom_left)
+                curr_angle = self.angle % 360
+                next_flat_angle = 90 * round(curr_angle / 90)
+                if not math.isclose(curr_angle, next_flat_angle):
+                    if curr_angle < next_flat_angle:  # Rotate counter-clockwise
+                        self.angle = min(curr_angle + 7.2, next_flat_angle)
+                        rotated_image, rotated_image_rect = rotate_image(
+                            self.original_image,
+                            self.rect.move(off_x, off_y).center,
+                            Vector2(BLOCK_SIZE, BLOCK_SIZE),
+                            self.angle,
+                        )
+                    else:  # Rotate clockwise
+                        self.angle = max(curr_angle - 7.2, next_flat_angle)
+                        rotated_image, rotated_image_rect = rotate_image(
+                            self.original_image,
+                            self.rect.move(off_x, off_y).center,
+                            Vector2(0, BLOCK_SIZE),
+                            self.angle,
+                        )
+                    self.image = rotated_image
+                    bottom = self.rect.bottom
+                    self.rect.size = rotated_image_rect.size
+                    self.rect.bottom = bottom
             else:
-                self.apply_gravity()
-
                 # Rotate the player
                 # self.angle -= (180 * GRAVITY) / (2 * self.velocity_jump)
                 # self.angle -= 8.1712
                 self.angle -= 7.2
-                pivot = Vector2(BLOCK_SIZE / 2, -BLOCK_SIZE / 2)
-                self.rotate_image(pivot)
+                rotated_image, rotated_image_rect = rotate_image(
+                    self.original_image,
+                    self.rect.center,
+                    Vector2(BLOCK_SIZE / 2, BLOCK_SIZE / 2),
+                    self.angle,
+                )
+                self.image = rotated_image
+                bottom = self.rect.bottom
+                self.rect.size = rotated_image_rect.size
+                self.rect.bottom = bottom
+
+        print("self.velocity.y", self.velocity.y)
 
         # Remove old particles
         for particle in self.particles:

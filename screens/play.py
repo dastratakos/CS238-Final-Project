@@ -1,3 +1,4 @@
+import math
 import random
 import time
 
@@ -123,8 +124,8 @@ def check_collisions(
 ):
     for player in players:
         if pygame.sprite.collide_rect(player, floor):
-            player.rect.bottom = floor.rect.top
-            player.velocity.y = 0
+            player.rect.bottom = floor.rect.top + 1
+            player.velocity.y = 0.001
             player.should_jump = False
             player.on_ground = True
         for element in elements:
@@ -136,10 +137,10 @@ def check_collisions(
                 ]:
                     if not player.gravity_reversed:
                         if player.velocity.y > 0:  # player is falling
-                            player.rect.bottom = element.rect.top
-                            player.velocity.y = 0
-                            player.on_ground = True
+                            player.rect.bottom = element.rect.top + 1
+                            player.velocity.y = 0.001
                             player.should_jump = False
+                            player.on_ground = True
                         elif player.velocity.y < 0:  # player is jumping
                             player.rect.top = element.rect.bottom
                         else:  # player is going forward
@@ -151,11 +152,11 @@ def check_collisions(
                     else:
                         if player.velocity.y < 0:  # player is falling
                             player.rect.top = element.rect.bottom
-                            player.velocity.y = 0
+                            player.velocity.y = 0.001
                             player.on_ground = True
                             player.should_jump = False
                         elif player.velocity.y > 0:  # player is jumping
-                            player.rect.bottom = element.rect.top
+                            player.rect.bottom = element.rect.top - 1
                         else:  # player is going forward
                             if stop_when_die:
                                 player.velocity = Vector2(0, 0)
@@ -182,6 +183,28 @@ def check_collisions(
                 elif element.collision_type == CollisionType.END:
                     player.velocity = Vector2(0, 0)
                     print(time.time(), "You win!")
+            elif pygame.sprite.collide_rect(player, element):
+                if element.collision_type in [
+                    CollisionType.SOLID,
+                    # CollisionType.SOLID_TOP,
+                    # CollisionType.SOLID_BOTTOM,
+                ]:
+                    if not player.gravity_reversed:
+                        if player.velocity.y > 0:  # player is falling
+                            player.rect.bottom = element.rect.top + 1
+                            player.velocity.y = 0.001
+                            player.should_jump = False
+                            player.on_ground = True
+                        elif player.velocity.y < 0:  # player is jumping
+                            player.rect.top = element.rect.bottom
+                    else:
+                        if player.velocity.y < 0:  # player is falling
+                            player.rect.top = element.rect.bottom
+                            player.velocity.y = 0.001
+                            player.on_ground = True
+                            player.should_jump = False
+                        elif player.velocity.y > 0:  # player is jumping
+                            player.rect.bottom = element.rect.top - 1
 
 
 def play(
@@ -189,6 +212,7 @@ def play(
     clock: pygame.time.Clock,
     level_id,
     progress=0,
+    draw_debug=False,
     # num_generations=100,
     # population_size=100,
     # mutation_rate=0.01,
@@ -239,7 +263,7 @@ def play(
     progress_bar = ProgressBar(SCREEN_SIZE[0] / 4, 30, SCREEN_SIZE[0] / 2, 20, progress)
 
     go_to_pause = False
-    while not go_to_pause:
+    while not go_to_pause or True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -256,7 +280,7 @@ def play(
                         camera,
                     ) = load_level(map, 0)
                 elif event.key == pygame.K_p:
-                    go_to_pause = True
+                    go_to_pause = not go_to_pause
         if pygame.key.get_pressed()[pygame.K_LEFT]:
             camera.x -= VELOCITY_X * 5
         if pygame.key.get_pressed()[pygame.K_RIGHT]:
@@ -297,13 +321,96 @@ def play(
                 player.ship_image if player.flying else player.image,
                 player.rect.move(-camera.x, -camera.y),
             )
+            if draw_debug:
+                # draw a red rectangle around the player's rotated image
+                pygame.draw.rect(
+                    screen,
+                    (255, 0, 0),
+                    (
+                        *player.rect.move(-camera.x, -camera.y).topleft,
+                        *player.image.get_size(),
+                    ),
+                    2,
+                )
+                # draw a white rectangle around the player's original image
+                pygame.draw.rect(
+                    screen,
+                    (255, 255, 255),
+                    (
+                        *player.rect.move(-camera.x, -camera.y).topleft,
+                        *player.original_image.get_size(),
+                    ),
+                    2,
+                )
+                # draw a yellow rectangle around the player's rect
+                pygame.draw.rect(
+                    screen,
+                    (0, 255, 255),
+                    (
+                        *player.rect.move(-camera.x, -camera.y).topleft,
+                        *player.rect.size,
+                    ),
+                    2,
+                )
+                # draw a green dot at the bottom left corner
+                pygame.draw.circle(
+                    screen,
+                    (0, 255, 0),
+                    player.rect.move(-camera.x, -camera.y).bottomleft,
+                    3,
+                    0,
+                )
+                # draw a blue dot at the bottom right corner
+                pygame.draw.circle(
+                    screen,
+                    (0, 0, 255),
+                    player.rect.move(-camera.x, -camera.y).bottomright,
+                    3,
+                    0,
+                )
+                # draw a purple dot at the bottom right corner of image
+                y = (player.angle - 1) % 90 + 1
+                off_x = (BLOCK_SIZE * math.sqrt(2) / 2) * math.cos(
+                    math.radians(135 - y)
+                )
+                off_y = (BLOCK_SIZE * math.sqrt(2) / 2) * math.sin(
+                    math.radians(135 - y)
+                )
+                pygame.draw.circle(
+                    screen,
+                    (255, 0, 255),
+                    player.rect.move(
+                        -camera.x + (off_x),
+                        -camera.y + off_y,
+                    ).center,
+                    3,
+                    0,
+                )
 
         progress_bar.draw(screen)
 
         pygame.display.flip()
         clock.tick(60)
+        while go_to_pause:
+            next_frame = False
+            for event in pygame.event.get():
 
-    if go_to_pause:
-        from screens.pause import pause
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_p:
+                        go_to_pause = not go_to_pause
+                    elif event.key == pygame.K_n:
+                        next_frame = True
 
-        pause(screen, clock, level_id, progress_bar.progress)
+            pygame.display.update()
+            clock.tick(15)
+
+            if next_frame:
+                break
+
+    # if go_to_pause:
+    #     from screens.pause import pause
+
+    #     pause(screen, clock, level_id, progress_bar.progress)
