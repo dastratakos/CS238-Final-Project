@@ -22,6 +22,7 @@ LEVELS = {
     3: {"name": "Polargeist", "filename": "maps/3.csv"},
     4: {"name": "Dry Out", "filename": "maps/4.csv"},
     5: {"name": "Base After Base", "filename": "maps/5.csv"},
+    6: {"name": "Portals", "filename": "maps/portals.csv"},
 }
 
 
@@ -32,12 +33,12 @@ class CollisionType(Enum):
     SOLID_BOTTOM = 4
     SPIKE = 5
     PORTAL_FLY_START = 6
-    PORTAL_FLY_END = 6
-    PORTAL_GRAVITY_REVERSE = 6
-    PORTAL_GRAVITY_NORMAL = 6
-    JUMP_PAD = 7
-    JUMP_ORB = 8
-    END = 8
+    PORTAL_FLY_END = 7
+    PORTAL_GRAVITY_REVERSE = 8
+    PORTAL_GRAVITY_NORMAL = 9
+    JUMP_PAD = 10
+    JUMP_ORB = 11
+    END = 12
 
 
 # Elements
