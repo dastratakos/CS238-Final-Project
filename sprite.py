@@ -150,36 +150,40 @@ class Player(ImageSprite):
             )
         )
 
-    def apply_gravity(self):
+    def apply_gravity(self, gravity):
         if not self.gravity_reversed:
-            self.velocity.y = min(self.velocity.y + GRAVITY, VELOCITY_MAX_FALL)
+            self.velocity.y = min(self.velocity.y + gravity, VELOCITY_MAX_FALL)
         else:
-            self.velocity.y = max(self.velocity.y - GRAVITY, -VELOCITY_MAX_FALL)
+            self.velocity.y = max(self.velocity.y - gravity, -VELOCITY_MAX_FALL)
 
     def update(self):
         if self.jump_controller.should_jump():
             self.should_jump = True
 
-        self.apply_gravity()
+        print(self.on_ground)
         if self.flying:
+            self.apply_gravity(GRAVITY / 2)
             if self.should_jump:
                 self.should_jump = False
-                self.velocity.y = -GRAVITY * 7
-            #     self.angle = min(self.angle + 7.2, 20)
-            # else:
-            #     self.angle = max(self.angle - 7.2, 0)
+                self.velocity.y = max(self.velocity.y + -GRAVITY * 5, -GRAVITY * 5)
+            self.angle = max(min(self.velocity.y * -2, 20), -20)
+            if self.on_ground:
+                self.angle = 0
 
-            # rotated_image, rotated_image_rect = rotate_image(
-            #     self.original_ship_image,
-            #     self.rect.midleft,
-            #     Vector2(0, BLOCK_SIZE / 2),
-            #     self.angle,
-            # )
-            # self.ship_image = rotated_image
-            # self.rect = rotated_image_rect
+            rotated_image, rotated_image_rect = rotate_image(
+                self.original_ship_image,
+                self.rect.midleft,
+                Vector2(0, BLOCK_SIZE / 2),
+                self.angle,
+            )
+            self.ship_image = rotated_image
+            bottom = self.rect.bottom
+            self.rect.size = rotated_image_rect.size
+            self.rect.bottom = bottom
 
             self.add_particle()
         else:
+            self.apply_gravity(GRAVITY)
             if self.on_ground:
                 if self.should_jump:
                     self.should_jump = False
