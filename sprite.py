@@ -110,6 +110,7 @@ class Player(ImageSprite):
         image: pygame.image,
         ship_image: pygame.image,
         jump_controller: JumpController,
+        is_ai: bool,
         *groups,
     ):
         super().__init__(position, image, *groups)
@@ -141,6 +142,11 @@ class Player(ImageSprite):
 
         self.jump_controller = jump_controller
 
+        self.dead = False
+        self.died_at = 0  # Progress at which the player died
+        
+        self.is_ai = is_ai
+
     def add_particle(self):
         self.particles.append(
             Particle(
@@ -157,10 +163,18 @@ class Player(ImageSprite):
             self.velocity.y = max(self.velocity.y - gravity, -VELOCITY_MAX_FALL)
 
     def update(self):
+        # Remove old particles
+        for particle in self.particles:
+            particle.update()
+            if particle.ttl <= 0:
+                self.particles.remove(particle)
+
+        if self.dead:
+            return
+
         if self.jump_controller.should_jump():
             self.should_jump = True
 
-        print(self.on_ground)
         if self.flying:
             self.apply_gravity(GRAVITY / 2)
             if self.should_jump:
@@ -237,14 +251,6 @@ class Player(ImageSprite):
                 bottom = self.rect.bottom
                 self.rect.size = rotated_image_rect.size
                 self.rect.bottom = bottom
-
-        print("self.velocity.y", self.velocity.y)
-
-        # Remove old particles
-        for particle in self.particles:
-            particle.update()
-            if particle.ttl <= 0:
-                self.particles.remove(particle)
 
         # Move the player
         self.rect.x += self.velocity.x
