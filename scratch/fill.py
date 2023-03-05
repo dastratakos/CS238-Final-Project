@@ -1,10 +1,7 @@
-import math
-
 import pygame
 from pygame.math import Vector2
 
 from config import BLOCK_SIZE, CollisionType
-from jump_controller import JumpControllerManual
 from sprite import ElementSprite, Player
 from utils import FillType, load_image
 
@@ -17,9 +14,9 @@ clock = pygame.time.Clock()
 player = Player(
     (size[0] / 2, size[1] / 2 - BLOCK_SIZE),
     Vector2(0, 0),
-    load_image(f"assets/players/player-20.png", fill_type=FillType.PLAYER),
+    load_image(f"assets/players/player-18.png", fill_type=FillType.PLAYER),
     load_image(f"assets/ships/ship-1.png", fill_type=FillType.SHIP),
-    flying=True,
+    flying=False,
 )
 element = ElementSprite(
     (size[0] / 2, size[1] / 2),
@@ -35,7 +32,7 @@ while not done:
         if event.type == pygame.QUIT:
             done = True
 
-    screen.fill((255, 255, 255))
+    screen.fill((43,91,168))
 
     screen.blit(player.ship_image if player.flying else player.image, player.rect)
     screen.blit(element.image, element.rect)

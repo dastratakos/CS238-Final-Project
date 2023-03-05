@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import pygame
 
 from components.text import Text
@@ -5,16 +7,19 @@ from config import SCREEN_SIZE, VELOCITY_X
 from game import Game
 from utils import load_map
 
+if TYPE_CHECKING:
+    from sprite import Player
+
 
 def simulate(
     screen: pygame.Surface,
     clock: pygame.time.Clock,
     level_id: int,
     num_manual_players: int = 0,
-    num_ai_players: int = 10,
+    num_ai_players: int = 20,
 ):
     generation = 0
-    best_ai_player = None
+    best_ai_player: Player = None
     while not best_ai_player or not best_ai_player.won:
 
         map = load_map(level_id)
@@ -23,7 +28,7 @@ def simulate(
         )
         alpha_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
 
-        go_to_menu, pause, debug = False, False, False
+        go_to_menu, pause, debug, next_frame = False, False, False, False
         while not go_to_menu:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -91,7 +96,7 @@ def simulate(
                             pause = False
                             go_to_menu = True
 
-            if not debug:
+            if not debug or next_frame:
                 game.update()
 
             # Check if all players are dead
@@ -139,8 +144,16 @@ def simulate(
 
             game.progress_bar.draw(screen)
 
-            text = Text(f"Generation {generation}", 20, topleft=(20, 20))
-            text.draw(screen)
+            generation_text = Text(f"Generation {generation}", 30, topleft=(20, 20))
+            generation_text.draw(screen)
+
+            best_score = best_ai_player.score if best_ai_player else 0
+            best_score_text = Text(
+                f"Best score: {(100 * best_score / game.map_width):.2f}%",
+                30,
+                topleft=(20, 50),
+            )
+            best_score_text.draw(screen)
 
             pygame.display.flip()
             clock.tick(60)

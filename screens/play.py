@@ -16,7 +16,7 @@ def play(
     attempt_num = 1
     alpha_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
 
-    go_to_menu, pause, debug = False, False, False
+    go_to_menu, pause, debug, next_frame = False, False, False, False
     while not go_to_menu:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -76,7 +76,7 @@ def play(
                         pause = False
                         go_to_menu = True
 
-        if not debug:
+        if not debug or next_frame:
             game.update()
 
         if game.player_sprite_group.sprites()[0].dead:

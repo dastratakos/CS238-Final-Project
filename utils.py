@@ -53,7 +53,7 @@ def fill_player(
     w, h = image.get_size()
     r1, g1, b1 = color1
     r2, g2, b2 = color2
-    border_width = 3
+    border_width = 2
     for x in range(border_width, w - border_width):
         for y in range(border_width, h - border_width):
             r, g, b, a = image.get_at((x, y))

@@ -140,9 +140,27 @@ class Player(ImageSprite):
         self.score = 0  # x position when the player died
 
     def clone(self):
+        """Returns a new player with the same attributes.
+        
+        Possibly shallow-copied attributes:
+        image
+        original_image
+        velocity
+        angle
+        gravity_reversed
+        flying
+        on_ground
+        on_ceiling
+        should_jump
+        dead
+        score
+
+        Returns:
+            Player: The cloned player.
+        """
         return Player(
             self.rect,
-            self.velocity,
+            Vector2(self.velocity),
             self.original_image,
             self.original_ship_image,
             render_particles=False,
@@ -303,6 +321,9 @@ class Player(ImageSprite):
 
         # Check collisions x
         self.check_collisions_x(element_map)
+        
+        if self.dead:
+            return
 
         # Update velocity.y with gravity
         if not self.flying:

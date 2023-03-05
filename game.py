@@ -82,27 +82,37 @@ class Game:
     def init_players(self, num_manual_players, num_ai_players, best_ai_player):
         player_sprite_group = pygame.sprite.Group()
         for i in range(num_ai_players):
-            if best_ai_player:
+            if i == 0:
                 # Make the first player the same as the best player from the
                 # previous generation so that the NN does not devolve
-                if i == 0:
+                if best_ai_player:
                     jump_controller = best_ai_player.jump_controller
+                # If there is no best player, make a random player
                 else:
+                    jump_controller = JumpControllerAI()
+                # The first player gets the player-0 skin
+                image = load_image(f"assets/players/player-0.png")
+            else:
+                # Make the rest of the players a child of the best player
+                if best_ai_player:
                     jump_controller = JumpControllerAI(
                         best_ai_player.jump_controller.net
                     )
-            else:
-                jump_controller = JumpControllerAI()
+                # If there is no best player, make a random player
+                else:
+                    jump_controller = JumpControllerAI()
+                image = load_image(
+                    f"assets/players/player-{random.randint(1, 20)}.png",
+                    fill_type=FillType.PLAYER,
+                )
+
             Player(
                 (
                     BLOCK_SIZE * -5 - (BLOCK_SIZE * 3 * i / num_ai_players),
                     self.map_height - BLOCK_SIZE,
                 ),
                 Vector2(VELOCITY_X, 0),
-                load_image(
-                    f"assets/players/player-{random.randint(1, 20)}.png",
-                    fill_type=FillType.PLAYER,
-                ),
+                image,
                 load_image(f"assets/ships/ship-1.png", fill_type=FillType.SHIP),
                 jump_controller=jump_controller,
                 sprite_groups=[player_sprite_group],

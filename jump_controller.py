@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-import random
+import time
 from typing import TYPE_CHECKING
 
 import pygame
@@ -52,7 +52,7 @@ class JumpControllerAI(JumpController):
         else:
             self.net = Net()
 
-    def simulate_dist_to_death(
+    def hallucinate_dist_to_death(
         self, player: Player, element_map: dict, floor_level: int
     ):
         """Simulates 40 steps into the future and returns the distance to the
@@ -83,7 +83,7 @@ class JumpControllerAI(JumpController):
                 dist = clone.rect.x - curr_x
         return dist
 
-    def will_die_if_jump(
+    def hallucinate_will_die_if_jump(
         self, player: Player, element_map: dict, floor_level: int, on_jump_orb: bool
     ):
         """Returns whether the player will die if it jumps.
@@ -99,7 +99,7 @@ class JumpControllerAI(JumpController):
         """
         if player.flying:  # jump is irrelevant
             return False
-        if not player.on_ground or on_jump_orb:  # cannot jump
+        if not player.on_ground and not on_jump_orb:  # cannot jump
             return False
 
         clone = player.clone()
@@ -140,28 +140,35 @@ class JumpControllerAI(JumpController):
                 height += 1
         return height * BLOCK_SIZE
 
-    # def predict(self, input):
-    #     return self.net(torch.Tensor(input)).item() > 0.5
-    #     return random.random() < 0.1
-
     def should_jump(self, player: Player, element_map: dict, floor_level: int):
+        dist_to_death = self.hallucinate_dist_to_death(player, element_map, floor_level)
+
         tile_coord = (player.rect.x // BLOCK_SIZE, player.rect.y // BLOCK_SIZE)
         element = element_map.get(tile_coord)
         on_jump_orb = (
             element.collision_type == CollisionType.JUMP_ORB if element else False
         )
 
+        will_die_if_jump = self.hallucinate_will_die_if_jump(
+            player, element_map, floor_level, on_jump_orb
+        )
+
+        vertical_obstacle_height = self.get_vertical_obstacle_height(
+            player, element_map, floor_level
+        )
+
         features = [
-            0, #self.simulate_dist_to_death(player, element_map, floor_level),
-            int(on_jump_orb),
-            0, #int(self.will_die_if_jump(player, element_map, floor_level, on_jump_orb)),
             int(player.flying),
-            self.get_vertical_obstacle_height(player, element_map, floor_level),
+            dist_to_death,
+            int(on_jump_orb),
+            int(will_die_if_jump),
+            vertical_obstacle_height,
         ]
 
-        # print(features)
+        # print(time.time(), features, end=" ")
 
         should_jump = self.net(torch.Tensor(features)).item() > 0.5
+
         # print(should_jump)
 
         return should_jump
