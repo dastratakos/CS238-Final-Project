@@ -114,7 +114,7 @@ class ProgressBar:
 
         # text
         text = Text(
-            f"{(100 * self.progress):.2f}%",
+            f"{(100 * self.progress):.0f}%",
             36,
             self.text_color,
             midleft=(self.x + self.width + 10, self.y + self.height / 2),
