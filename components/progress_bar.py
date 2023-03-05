@@ -4,15 +4,15 @@ import pygame
 class ProgressBar:
     def __init__(
         self,
-        x,
-        y,
-        width,
-        height,
-        progress=0,  # float from 0 to 1
-        color=(79, 175, 7),
-        highlight_color=(121, 214, 52),
-        background_color=(175, 175, 175),
-        text_color=(255, 255, 255),
+        x: int,
+        y: int,
+        width: int,
+        height: int,
+        progress: int = 0,  # float from 0 to 1
+        color: tuple = (79, 175, 7),
+        highlight_color: tuple = (121, 214, 52),
+        background_color: tuple = (175, 175, 175),
+        text_color: tuple = (255, 255, 255),
     ):
         self.x = x
         self.y = y

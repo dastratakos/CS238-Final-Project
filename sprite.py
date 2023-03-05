@@ -69,20 +69,12 @@ class ElementSprite(ImageSprite):
     def __init__(
         self,
         position: tuple,
-        velocity: Vector2,
         image: pygame.image,
         collision_type: CollisionType = CollisionType.NONE,
         *groups,
     ):
         super().__init__(position, image, *groups)
-        self.velocity = velocity
-
         self.collision_type = collision_type
-
-    def update(self):
-        self.rect.x += self.velocity.x
-        self.rect.y += self.velocity.y
-
 
 class Particle(Sprite):
     def __init__(self, position: tuple, velocity: Vector2, ttl: int, *groups):
@@ -136,6 +128,7 @@ class Player(ImageSprite):
 
         self.should_jump = False
         self.on_ground = False
+        self.on_ceiling = False
 
         self.original_image = image
         self.angle = 0
@@ -162,15 +155,15 @@ class Player(ImageSprite):
         else:
             self.velocity.y = max(self.velocity.y - gravity, -VELOCITY_MAX_FALL)
 
-    def check_collisions_x(self, objects: dict):
+    def check_collisions_x(self, element_map: dict):
         """Checks for collisions in the x direction.
 
         Args:
-            objects (dict): Dictionary from tile coordinates to pygame Sprites.
+            element_map (dict): Dictionary from tile coordinates to pygame Sprites.
         """
         for x in range(-1, 2):
             for y in range(-1, 2):
-                object = objects.get((self.rect.x + x, self.rect.y + y))
+                object = element_map.get((self.rect.x + x, self.rect.y + y))
                 if not object or not pygame.sprite.collide_mask(self, object):
                     continue
 
@@ -201,11 +194,11 @@ class Player(ImageSprite):
                         self.velocity = Vector2(0, 0)
                         return
 
-    def check_collisions_y(self, objects: dict):
+    def check_collisions_y(self, element_map: dict):
         """Checks for collisions in the y direction.
 
         Args:
-            objects (dict): Dictionary from tile coordinates to pygame Sprites.
+            element_map (dict): Dictionary from tile coordinates to pygame Sprites.
         """
         # If the player is at the floor level, there will be no other collisions
         floor_level = 23 * BLOCK_SIZE
@@ -218,7 +211,7 @@ class Player(ImageSprite):
 
         for x in range(-1, 2):
             for y in range(-1, 2):
-                object = objects.get(
+                object = element_map.get(
                     (self.rect.x // BLOCK_SIZE + x, self.rect.y // BLOCK_SIZE + y)
                 )
                 if not object or not pygame.sprite.collide_mask(self, object):
@@ -252,11 +245,11 @@ class Player(ImageSprite):
                         self.velocity = Vector2(0, 0)
                         return
 
-    def update(self, objects: dict):
+    def update(self, element_map: dict):
         """Updates the player.
 
         Args:
-            objects (dict): Dictionary from tile coordinates to pygame Sprites.
+            element_map (dict): Dictionary from tile coordinates to pygame Sprites.
         """
         if self.dead:
             return
@@ -265,7 +258,7 @@ class Player(ImageSprite):
         self.rect.x += self.velocity.x
 
         # Check collisions x
-        self.check_collisions_x(objects)
+        self.check_collisions_x(element_map)
 
         # TODO: ROTATE IMAGE
 
@@ -279,7 +272,7 @@ class Player(ImageSprite):
             self.add_particle()
         
         if self.jump_controller.should_jump():
-            object = objects.get((self.rect.x // BLOCK_SIZE, self.rect.y // BLOCK_SIZE))
+            object = element_map.get((self.rect.x // BLOCK_SIZE, self.rect.y // BLOCK_SIZE))
             if object and object.collision_type == CollisionType.JUMP_ORB:
                 self.velocity.y = self.velocity_jump_orb * (
                     1 if self.gravity_reversed else -1
@@ -300,7 +293,7 @@ class Player(ImageSprite):
         self.on_ground = False
 
         # Check collisions y
-        self.check_collisions_y(objects)
+        self.check_collisions_y(element_map)
 
         # Remove old particles
         for particle in self.particles:
