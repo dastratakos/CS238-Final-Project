@@ -175,11 +175,8 @@ class Game:
         return tile_sprite_group
 
     def update(self):
-        self.player_sprite_group.update(self.element_map)
-        if (
-            self.player_sprite_group.sprites()[0].rect.x
-            > SCREEN_SIZE[0] / 2 - BLOCK_SIZE / 2
-        ):
+        self.player_sprite_group.update(self.element_map, self.map_height)
+        if self.player_sprite_group.sprites()[0].rect.x > SCREEN_SIZE[0] / 3:
             self.tile_sprite_group.update()
             self.camera.x += VELOCITY_X
         # self.camera.y += 0 # TODO: camera should follow player

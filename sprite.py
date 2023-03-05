@@ -137,7 +137,8 @@ class Player(ImageSprite):
         self.jump_controller = jump_controller
 
         self.dead = False
-        self.died_at = 0  # Progress at which the player died
+        # self.died_at = 0  # Progress at which the player died
+        self.score = 0
 
         self.is_ai = is_ai
 
@@ -168,12 +169,11 @@ class Player(ImageSprite):
                     self.rect.center[0] // BLOCK_SIZE + x,
                     self.rect.center[1] // BLOCK_SIZE + y,
                 )
-                object = element_map.get(tile_coord)
-                print("tile_coord, object:", tile_coord, object)
-                if not object or not pygame.sprite.collide_mask(self, object):
+                element = element_map.get(tile_coord)
+                if not element or not pygame.sprite.collide_mask(self, element):
                     continue
 
-                match object.collision_type:
+                match element.collision_type:
                     case type if type in [
                         CollisionType.SOLID,
                         CollisionType.SOLID_TOP,
@@ -183,7 +183,8 @@ class Player(ImageSprite):
                         self.dead = True
                         self.score = self.rect.x
                         self.velocity = Vector2(0, 0)
-                        self.rect.right = object.rect.left
+                        self.rect.right = element.rect.left
+                        print("Died on", type, "tile_coord:", tile_coord)
                         return
                     case CollisionType.PORTAL_FLY_START:
                         self.flying = True
@@ -200,18 +201,17 @@ class Player(ImageSprite):
                         self.velocity = Vector2(0, 0)
                         return
 
-    def check_collisions_y(self, element_map: dict):
+    def check_collisions_y(self, element_map: dict, floor_level: int):
         """Checks for collisions in the y direction.
 
         Args:
             element_map (dict): Dictionary from tile coordinates to pygame Sprites.
+            floor_level (int): The y coordinate of the floor.
         """
-        # If the player is at the floor level, there will be no other collisions
-        floor_level = 23 * BLOCK_SIZE
-        if self.rect.bottom >= floor_level:  # TODO: change based on level
+        # If on the floor level, there will be no other y collisions
+        if self.rect.bottom >= floor_level:
             self.rect.bottom = floor_level
             self.velocity.y = 0
-            self.should_jump = False
             self.on_ground = True
             return
 
@@ -221,13 +221,11 @@ class Player(ImageSprite):
                     self.rect.center[0] // BLOCK_SIZE + x,
                     self.rect.center[1] // BLOCK_SIZE + y,
                 )
-                object = element_map.get(tile_coord)
-                if not object or not pygame.sprite.collide_mask(self, object):
+                element = element_map.get(tile_coord)
+                if not element or not pygame.sprite.collide_mask(self, element):
                     continue
-                
-                print("Collision")
 
-                match object.collision_type:
+                match element.collision_type:
                     case type if type in [
                         CollisionType.SOLID,
                         CollisionType.SOLID_TOP,
@@ -235,31 +233,31 @@ class Player(ImageSprite):
                     ]:
                         if not self.gravity_reversed:
                             if self.velocity.y > 0:  # player is falling
-                                self.rect.bottom = object.rect.top + 1
-                                self.velocity.y = 0.001
-                                self.should_jump = False
+                                self.rect.bottom = element.rect.top
+                                self.velocity.y = 0
                                 self.on_ground = True
                             elif self.velocity.y < 0:  # player is jumping
-                                self.rect.top = object.rect.bottom
+                                self.rect.top = element.rect.bottom
                         else:
                             if self.velocity.y < 0:  # player is falling
-                                self.rect.top = object.rect.bottom
-                                self.velocity.y = 0.001
+                                self.rect.top = element.rect.bottom
+                                self.velocity.y = 0
                                 self.on_ground = True
-                                self.should_jump = False
                             elif self.velocity.y > 0:  # player is jumping
-                                self.rect.bottom = object.rect.top - 1
+                                self.rect.bottom = element.rect.top
                     case CollisionType.SPIKE:
                         self.dead = True
                         self.score = self.rect.x
                         self.velocity = Vector2(0, 0)
+                        print("Died on spike, tile_coord:", tile_coord)
                         return
 
-    def update(self, element_map: dict):
+    def update(self, element_map: dict, floor_level: int):
         """Updates the player.
 
         Args:
             element_map (dict): Dictionary from tile coordinates to pygame Sprites.
+            floor_level (int): The y coordinate of the floor.
         """
         if self.dead:
             return
@@ -282,16 +280,15 @@ class Player(ImageSprite):
             self.add_particle()
 
         if self.jump_controller.should_jump():
-            object = element_map.get(
-                (self.rect.x // BLOCK_SIZE, self.rect.y // BLOCK_SIZE)
-            )
-            if object and object.collision_type == CollisionType.JUMP_ORB:
+            tile_coord = (self.rect.x // BLOCK_SIZE, self.rect.y // BLOCK_SIZE)
+            element = element_map.get(tile_coord)
+            if element and element.collision_type == CollisionType.JUMP_ORB:
                 self.velocity.y = self.velocity_jump_orb * (
                     1 if self.gravity_reversed else -1
                 )
             elif not self.flying:
                 if self.on_ground and not self.gravity_reversed:
-                    self.velocity_y = -self.velocity_jump
+                    self.velocity.y = -self.velocity_jump
                 elif self.on_ceiling and self.gravity_reversed:
                     self.velocity.y = self.velocity_jump
             else:
@@ -305,7 +302,7 @@ class Player(ImageSprite):
         self.on_ground = False
 
         # Check collisions y
-        self.check_collisions_y(element_map)
+        self.check_collisions_y(element_map, floor_level)
 
         # Remove old particles
         for particle in self.particles:
