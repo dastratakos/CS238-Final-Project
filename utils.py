@@ -9,27 +9,30 @@ from pygame.math import Vector2
 from config import BLOCK_SIZE, LEVELS
 
 
-def resize_image(image: pygame.image, size: Tuple[int, int] = (BLOCK_SIZE, BLOCK_SIZE)):
+def resize_image(
+    image: pygame.Surface,
+    size: Tuple[int, int] = (BLOCK_SIZE, BLOCK_SIZE),
+):
     """Resizes the given image out of place.
 
     Args:
-        image (pygame.image): The image to resize.
+        image (pygame.Surface): The image to resize.
         size (Tuple[int, int], optional): The new size. Defaults to
             (BLOCK_SIZE, BLOCK_SIZE).
 
     Returns:
-        pygame.image: The resized image.
+        pygame.Surface: The resized image.
     """
     return pygame.transform.smoothscale(image, size)
 
 
 def close_to_black(color: Tuple[int, int, int]) -> bool:
     r, g, b = color
-    return r == g and r == b and r < 50 and g < 50 and b < 50
+    return r == g and r == b and r < 150 and g < 150 and b < 150
 
 
 def fill_player(
-    image: pygame.image,
+    image: pygame.Surface,
     color1: Tuple[int, int, int],
     color2: Tuple[int, int, int],
 ):
@@ -38,7 +41,7 @@ def fill_player(
     gaps (transparent pixels).
 
     Args:
-        image (pygame.image): The player image.
+        image (pygame.Surface): The player image.
         color1 (Tuple[int, int, int]): The primary color.
         color2 (Tuple[int, int, int]): The secondary color.
     """
@@ -49,10 +52,10 @@ def fill_player(
     for x in range(border_width, w - border_width):
         for y in range(border_width, h - border_width):
             r, g, b, a = image.get_at((x, y))
-            if close_to_black((r, g, b)) and a > 60:
+            if close_to_black((r, g, b)) and a > 50:
                 image.set_at((x, y), pygame.Color(0, 0, 0, 255))
             elif (r, g, b) == (0, 0, 0):
-                image.set_at((x, y), pygame.Color(r2, g2, b2, a))
+                image.set_at((x, y), pygame.Color(r2, g2, b2, 255))
             elif a == 0:
                 image.set_at((x, y), pygame.Color(r2, g2, b2, 255))
             else:
@@ -60,7 +63,7 @@ def fill_player(
 
 
 def fill_ship(
-    image: pygame.image,
+    image: pygame.Surface,
     color1: Tuple[int, int, int],
     color2: Tuple[int, int, int],
 ):
@@ -68,7 +71,7 @@ def fill_ship(
     the ships's body (white pixels). The second color is unused for now.
 
     Args:
-        image (pygame.image): The player image.
+        image (pygame.Surface): The player image.
         color1 (Tuple[int, int, int]): The primary color.
         color2 (Tuple[int, int, int]): The secondary color.
     """
@@ -110,7 +113,7 @@ def load_image(
             to (2, 255, 255).
 
     Returns:
-        pygame.image: The loaded image.
+        pygame.Surface: The loaded image.
     """
     if os.path.exists(filename):
         image = resize_image(pygame.image.load(filename), size)
@@ -137,7 +140,7 @@ def load_map(level_id: int):
 
 
 def rotate_image(
-    original_image: pygame.image,
+    original_image: pygame.Surface,
     surf_pivot: Vector2,
     image_pivot: Vector2,
     angle: float,
@@ -147,7 +150,7 @@ def rotate_image(
     See https://stackoverflow.com/a/59909946 for details.
 
     Args:
-        original_image (pygame.image): The image to rotate.
+        original_image (pygame.Surface): The image to rotate.
         surf_pivot (Vector2): The position of the pivot point relative to the surface.
         image_pivot (Vector2): The position of the pivot point relative to the image.
         angle (float): The angle to rotate the image by.

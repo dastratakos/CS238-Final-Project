@@ -29,7 +29,7 @@ class Sprite(pygame.sprite.Sprite):
 
 
 class ImageSprite(Sprite):
-    def __init__(self, position: tuple, image: pygame.image, *groups):
+    def __init__(self, position: tuple, image: pygame.Surface, *groups):
         super().__init__(position, *groups)
         self.image = image
         self.mask = pygame.mask.from_surface(self.image)
@@ -49,7 +49,7 @@ class TiledSprite(ImageSprite):
         self,
         position: tuple,
         velocity: Vector2,
-        image: pygame.image,
+        image: pygame.Surface,
         num_siblings: int,
         *groups,
     ):
@@ -73,7 +73,7 @@ class ElementSprite(ImageSprite):
     def __init__(
         self,
         position: tuple,
-        image: pygame.image,
+        image: pygame.Surface,
         collision_type: CollisionType = CollisionType.NONE,
         *groups,
     ):
@@ -104,8 +104,8 @@ class Player(ImageSprite):
         self,
         position: tuple,
         velocity: Vector2,
-        image: pygame.image,
-        ship_image: pygame.image,
+        image: pygame.Surface,
+        ship_image: pygame.Surface,
         jump_controller: JumpController = None,
         render_particles: bool = True,
         angle: int = 0,
@@ -153,15 +153,15 @@ class Player(ImageSprite):
             on_ceiling=self.on_ceiling,
         )
 
-    def build_ship_image(self, image: pygame.image, ship_image: pygame.image):
-        """Returns a new pygame.image with the player sitting inside the ship.
+    def build_ship_image(self, image: pygame.Surface, ship_image: pygame.Surface):
+        """Returns a new pygame.Surface with the player sitting inside the ship.
 
         Args:
-            image (pygame.image): The player image.
-            ship_image (pygame.image): The ship image.
+            image (pygame.Surface): The player image.
+            ship_image (pygame.Surface): The ship image.
 
         Returns:
-            pygame.image: The new image.
+            pygame.Surface: The new image.
         """
         new_image = load_image("assets/ships/blank.png")
         new_image.blit(
@@ -370,7 +370,7 @@ class Player(ImageSprite):
                 self.angle,
             )
             if self.flying:
-                self.ship_image = rotate_image
+                self.ship_image = rotated_image
                 self.mask = pygame.mask.from_surface(self.ship_image)
             else:
                 self.image = rotated_image

@@ -17,9 +17,9 @@ clock = pygame.time.Clock()
 player = Player(
     (size[0] / 2, size[1] / 2 - BLOCK_SIZE),
     Vector2(0, 0),
-    load_image(f"assets/players/player-1.png", fill_type=FillType.PLAYER),
+    load_image(f"assets/players/player-20.png", fill_type=FillType.PLAYER),
     load_image(f"assets/ships/ship-1.png", fill_type=FillType.SHIP),
-    JumpControllerManual(),
+    flying=True,
 )
 element = ElementSprite(
     (size[0] / 2, size[1] / 2),
@@ -35,25 +35,10 @@ while not done:
         if event.type == pygame.QUIT:
             done = True
 
-    next_frame = False
-    while not next_frame:
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_n:
-                    next_frame = True
+    screen.fill((255, 255, 255))
 
-    print("player", player.rect, player.rect.bottom)
-    print("  velocity", player.velocity)
-    print("element", element.rect, element.rect.top)
-
-    screen.fill(255)
-
-    screen.blit(player.image, player.rect)
+    screen.blit(player.ship_image if player.flying else player.image, player.rect)
     screen.blit(element.image, element.rect)
-
-    player.update({(5, 5): element}, size[1] - BLOCK_SIZE)
-
-    print()
 
     pygame.display.flip()
 
