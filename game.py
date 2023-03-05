@@ -174,7 +174,14 @@ class Game:
         return tile_sprite_group
 
     def update(self):
-        self.player_sprite_group.update(self.element_map, self.map_height)
+        for player in self.player_sprite_group:
+            player.should_jump = player.jump_controller.should_jump(
+                player.rect, self.element_map
+            )
+            player.update(self.element_map, self.map_height)
+        
+        # Starting animation: don't move the camera until the player is past the
+        # first third of the screen
         if self.player_sprite_group.sprites()[0].rect.x > SCREEN_SIZE[0] / 3:
             self.tile_sprite_group.update()
             self.camera.x += VELOCITY_X

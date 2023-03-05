@@ -1,5 +1,6 @@
 import pygame
 
+from components.text import Text
 from config import SCREEN_SIZE, VELOCITY_X
 from game import Game
 from utils import load_map
@@ -9,6 +10,8 @@ def simulate(
     screen: pygame.Surface,
     clock: pygame.time.Clock,
     level_id: int,
+    num_manual_players: int = 0,
+    num_ai_players: int = 200,
 ):
     generation = 0
     best_ai_player = None
@@ -16,7 +19,7 @@ def simulate(
 
         map = load_map(level_id)
         game = Game(
-            map, num_manual_players=0, num_ai_players=20, best_ai_player=best_ai_player
+            map, num_manual_players, num_ai_players, best_ai_player=best_ai_player
         )
         alpha_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
 
@@ -30,8 +33,8 @@ def simulate(
                     if event.key == pygame.K_r:
                         game = Game(
                             map,
-                            num_manual_players=0,
-                            num_ai_players=20,
+                            num_manual_players,
+                            num_ai_players,
                             best_ai_player=best_ai_player,
                         )
                     elif event.key == pygame.K_p:
@@ -49,8 +52,8 @@ def simulate(
                         if event.key == pygame.K_r:
                             game = Game(
                                 map,
-                                num_manual_players=0,
-                                num_ai_players=20,
+                                num_manual_players,
+                                num_ai_players,
                                 best_ai_player=best_ai_player,
                             )
                         elif event.key == pygame.K_p:
@@ -103,8 +106,8 @@ def simulate(
                 generation += 1
                 game = Game(
                     map,
-                    num_manual_players=0,
-                    num_ai_players=20,
+                    num_manual_players,
+                    num_ai_players,
                     best_ai_player=best_ai_player,
                 )
 
@@ -136,12 +139,8 @@ def simulate(
 
             game.progress_bar.draw(screen)
 
-            font = pygame.font.Font(None, 20)
-
-            text = font.render(f"Generation {generation}", True, (255, 255, 255))
-            text_rect = text.get_rect()
-            text_rect.topleft = (20, 20)
-            screen.blit(text, text_rect)
+            text = Text(f"Generation {generation}", 20, topleft=(20, 20))
+            text.draw(screen)
 
             pygame.display.flip()
             clock.tick(60)

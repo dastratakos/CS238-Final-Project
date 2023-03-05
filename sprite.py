@@ -183,7 +183,6 @@ class Player(ImageSprite):
                         self.score = self.rect.x
                         self.velocity = Vector2(0, 0)
                         self.rect.right = element.rect.left
-                        print("Died on", type, "tile_coord:", tile_coord)
                         return
                     case CollisionType.PORTAL_FLY_START:
                         self.flying = True
@@ -248,7 +247,6 @@ class Player(ImageSprite):
                         self.dead = True
                         self.score = self.rect.x
                         self.velocity = Vector2(0, 0)
-                        print("Died on spike, tile_coord:", tile_coord)
                         return
 
     def update(self, element_map: dict, floor_level: int):
@@ -258,6 +256,12 @@ class Player(ImageSprite):
             element_map (dict): Dictionary from tile coordinates to pygame Sprites.
             floor_level (int): The y coordinate of the floor.
         """
+        # Remove old particles
+        for particle in self.particles:
+            particle.update()
+            if particle.ttl <= 0:
+                self.particles.remove(particle)
+
         if self.dead:
             return
 
@@ -277,7 +281,7 @@ class Player(ImageSprite):
             self.add_particle()
 
         # Update velocity.y with jump
-        if self.jump_controller.should_jump():
+        if self.should_jump:
             tile_coord = (self.rect.x // BLOCK_SIZE, self.rect.y // BLOCK_SIZE)
             element = element_map.get(tile_coord)
             if element and element.collision_type == CollisionType.JUMP_ORB:
@@ -350,8 +354,5 @@ class Player(ImageSprite):
         # Check collisions y
         self.check_collisions_y(element_map, floor_level)
 
-        # Remove old particles
-        for particle in self.particles:
-            particle.update()
-            if particle.ttl <= 0:
-                self.particles.remove(particle)
+        # Reset should_jump
+        self.should_jump = False

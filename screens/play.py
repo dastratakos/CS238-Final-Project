@@ -1,5 +1,6 @@
 import pygame
 
+from components.text import Text
 from config import BLOCK_SIZE, SCREEN_SIZE, VELOCITY_X
 from game import Game
 from utils import load_map
@@ -110,12 +111,15 @@ def play(
 
         game.progress_bar.draw(screen)
 
-        font = pygame.font.Font(None, 50)
-
-        text = font.render(f"ATTEMPT {attempt_num}", True, (255, 255, 255))
-        text_rect = text.get_rect()
-        text_rect.center = (SCREEN_SIZE[0] / 2, game.map_height - 8 * BLOCK_SIZE)
-        screen.blit(text, text_rect.move(-game.camera.x, -game.camera.y))
+        text = Text(
+            f"ATTEMPT {attempt_num}",
+            50,
+            center=(
+                SCREEN_SIZE[0] / 2 - game.camera.x,
+                game.map_height - 8 * BLOCK_SIZE - game.camera.y,
+            ),
+        )
+        text.draw(screen)
 
         pygame.display.flip()
         clock.tick(60)

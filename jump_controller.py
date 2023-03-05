@@ -9,12 +9,12 @@ import torch.nn.functional as F
 
 class JumpController(ABC):
     @abstractmethod
-    def should_jump(self):
+    def should_jump(self, position: pygame.rect, element_map: dict):
         pass
 
 
 class JumpControllerManual(JumpController):
-    def should_jump(self):
+    def should_jump(self, position: pygame.rect, element_map: dict):
         return pygame.key.get_pressed()[pygame.K_SPACE]
 
 
@@ -57,7 +57,7 @@ class JumpControllerAI(JumpController):
         return self.net(torch.Tensor(input)).item() > 0.5
         return random.random() < 0.1
 
-    def should_jump(self):
+    def should_jump(self, position: pygame.rect, element_map: dict):
         return self.predict()
 
 

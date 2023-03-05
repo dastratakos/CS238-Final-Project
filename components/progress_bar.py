@@ -1,5 +1,7 @@
 import pygame
 
+from components.text import Text
+
 
 class ProgressBar:
     def __init__(
@@ -111,8 +113,10 @@ class ProgressBar:
         )
 
         # text
-        font = pygame.font.Font(None, 36)
-        text = font.render(f"{(100 * self.progress):.2f}%", True, self.text_color)
-        text_rect = text.get_rect()
-        text_rect.midleft = (self.x + self.width + 10, self.y + self.height / 2)
-        screen.blit(text, text_rect)
+        text = Text(
+            f"{(100 * self.progress):.2f}%",
+            36,
+            self.text_color,
+            midleft=(self.x + self.width + 10, self.y + self.height / 2),
+        )
+        text.draw(screen)

@@ -1,6 +1,7 @@
 import pygame
 
 from components.button import Button
+from components.text import Text
 from config import SCREEN_SIZE
 
 
@@ -10,6 +11,12 @@ def pause(screen: pygame.Surface, clock: pygame.time.Clock, level_id=1, progress
     menu_button = Button(100, (SCREEN_SIZE[1] - 100) // 2, 100, 100, "Menu")
     play_button = Button(
         SCREEN_SIZE[0] - 200, (SCREEN_SIZE[1] - 100) // 2, 100, 100, "Play"
+    )
+    text = Text(
+        "TODO: pause screen",
+        36,
+        (100, 100, 100),
+        center=(SCREEN_SIZE[0] // 2, SCREEN_SIZE[1] // 4),
     )
 
     go_to_menu, go_to_play = False, False
@@ -33,13 +40,7 @@ def pause(screen: pygame.Surface, clock: pygame.time.Clock, level_id=1, progress
 
         menu_button.draw(screen)
         play_button.draw(screen)
-
-        # text
-        font = pygame.font.Font(None, 36)
-        text = font.render("TODO: pause screen", True, (100, 100, 100))
-        text_rect = text.get_rect()
-        text_rect.center = (SCREEN_SIZE[0] // 2, SCREEN_SIZE[1] // 4)
-        screen.blit(text, text_rect)
+        text.draw(screen)
 
         pygame.display.update()
 

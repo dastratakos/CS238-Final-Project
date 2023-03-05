@@ -1,5 +1,7 @@
 import pygame
 
+from components.text import Text
+
 
 class Button:
     def __init__(
@@ -87,8 +89,10 @@ class Button:
         )
 
         # text
-        font = pygame.font.Font(None, 36)
-        text = font.render(self.text, True, text_color)
-        text_rect = text.get_rect()
-        text_rect.center = (self.x + self.width // 2, self.y + self.height // 2)
-        screen.blit(text, text_rect)
+        text = Text(
+            self.text,
+            36,
+            text_color,
+            center=(self.x + self.width // 2, self.y + self.height // 2),
+        )
+        text.draw(screen)
