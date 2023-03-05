@@ -268,9 +268,7 @@ class Player(ImageSprite):
         # Check collisions x
         self.check_collisions_x(element_map)
 
-        # TODO: ROTATE IMAGE
-
-        # Update velocity.y (gravity, then jumping)
+        # Update velocity.y with gravity
         if not self.flying:
             self.apply_gravity(GRAVITY)
             if self.on_ground:
@@ -279,6 +277,7 @@ class Player(ImageSprite):
             self.apply_gravity(GRAVITY / 2)
             self.add_particle()
 
+        # Update velocity.y with jump
         if self.jump_controller.should_jump():
             tile_coord = (self.rect.x // BLOCK_SIZE, self.rect.y // BLOCK_SIZE)
             element = element_map.get(tile_coord)
@@ -296,9 +295,57 @@ class Player(ImageSprite):
                     self.velocity.y = max(self.velocity.y + -GRAVITY * 5, -GRAVITY * 5)
                 else:
                     self.velocity.y = min(self.velocity.y + GRAVITY * 5, GRAVITY * 5)
+        
+        # Update angle, surf_pivot, and image_pivot
+        surf_pivot, image_pivot = None, None
+        if self.on_ground:
+            # Rotate the player to the nearest 90 degrees
+            angle_radians = math.radians(135 - ((self.angle - 1) % 90 + 1))
 
-        # Move y
-        self.rect.y += self.velocity.y
+            off_x = (BLOCK_SIZE * math.sqrt(2) / 2) * math.cos(angle_radians)
+            off_y = (BLOCK_SIZE * math.sqrt(2) / 2) * math.sin(angle_radians)
+
+            curr_angle = self.angle % 360
+            next_flat_angle = 90 * round(curr_angle / 90)
+            if not math.isclose(curr_angle, next_flat_angle):
+                if curr_angle < next_flat_angle:  # Rotate counter-clockwise
+                    self.angle = min(curr_angle + 7.2, next_flat_angle)
+                    surf_pivot = self.rect.move(off_x, off_y).center
+                    image_pivot = Vector2(BLOCK_SIZE, BLOCK_SIZE)
+                else:  # Rotate clockwise
+                    self.angle = max(curr_angle - 7.2, next_flat_angle)
+                    surf_pivot = self.rect.move(off_x, off_y).center
+                    image_pivot = Vector2(0, BLOCK_SIZE)
+        elif self.flying:
+            self.angle = max(min(self.velocity.y * -2, 20), -20)
+            surf_pivot = self.rect.midleft
+            image_pivot = Vector2(0, BLOCK_SIZE / 2)
+        else: # not on the ground and not flying (i.e., spinning in air)
+            self.angle -= 7.2
+            surf_pivot = self.rect.center
+            image_pivot = Vector2(BLOCK_SIZE / 2, BLOCK_SIZE / 2)
+        
+        # Rotate image
+        if surf_pivot and image_pivot:
+            rotated_image, rotated_image_rect = rotate_image(
+                self.original_ship_image if self.flying else self.original_image,
+                surf_pivot,
+                Vector2(BLOCK_SIZE / 2, BLOCK_SIZE / 2),
+                self.angle,
+            )
+            if self.flying:
+                self.ship_image = rotate_image
+                self.mask = pygame.mask.from_surface(self.ship_image)
+            else:
+                self.image = rotated_image
+                self.mask = pygame.mask.from_surface(self.image)
+            bottom = self.rect.bottom
+            self.rect.size = rotated_image_rect.size
+            self.rect.bottom = bottom
+
+        # Move y. We are using round() to avoid floating point errors when
+        # self.velocity.y = GRAVITY = 0.86 because on_ground would not be True.
+        self.rect.y += round(self.velocity.y)
         self.on_ground = False
 
         # Check collisions y

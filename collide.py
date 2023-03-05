@@ -52,7 +52,7 @@ while not done:
     screen.blit(player.image, player.rect)
     screen.blit(element.image, element.rect)
 
-    player.update({(5, 5): element})
+    player.update({(5, 5): element}, size[1] - BLOCK_SIZE)
 
     print()
 
