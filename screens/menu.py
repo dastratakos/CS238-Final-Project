@@ -58,6 +58,9 @@ def menu(screen: pygame.Surface, clock: pygame.time.Clock):
         pygame.display.update()
 
     if go_to_play:
-        from screens.play import play
+        # from screens.play import play
 
-        play(screen, clock, level_id)
+        # play(screen, clock, level_id)
+        from screens.simulate import simulate
+        
+        simulate(screen, clock, level_id)

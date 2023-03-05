@@ -36,14 +36,14 @@ class Net(nn.Module):
 
 
 class JumpControllerAI(JumpController):
-    def __init__(self):
+    def __init__(self, parent_net=None):
         self.farthest_distance = 0
-        self.net = Net()
-
-    def evolve(self, parent_net):
-        self.net = parent_net
-        for param in self.net.parameters():
-            param.data += torch.randn(param.size()) * 0.1
+        if parent_net:
+            self.net = parent_net
+            for param in self.net.parameters():
+                param.data += torch.randn(param.size()) * 0.1
+        else:
+            self.net = Net()
 
     def predict(self, input=[1, 2, 3, 4, 5]):
         """

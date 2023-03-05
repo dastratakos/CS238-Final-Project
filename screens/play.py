@@ -1,6 +1,6 @@
 import math
 import random
-import time
+from typing import Union
 
 import pygame
 from pygame.math import Vector2
@@ -24,23 +24,32 @@ class Camera:
         self.x, self.y = x, y
 
 
-def load_level(map, progress=0, num_manual_players=1, num_ai_players=19):
+def load_level(
+    map, progress=0, num_manual_players=1, num_ai_players=19, best_ai_player=None
+):
     # Create the players
     player_sprite_group = pygame.sprite.Group()
     players = []
-    for _ in range(num_ai_players):
+    for i in range(num_ai_players):
+        if best_ai_player:
+            # Make the first player the same as the best player from the previous
+            # generation so that the NN does not devolve
+            if i == 0:
+                jump_controller = best_ai_player.jump_controller
+            else:
+                jump_controller = JumpControllerAI(best_ai_player.jump_controller.net)
         players.append(
             Player(
                 (
                     BLOCK_SIZE * 5
-                    - random.randint(0, BLOCK_SIZE * 3)
+                    - BLOCK_SIZE * 3 * i / num_ai_players
                     + progress * len(map[0]) * BLOCK_SIZE,
                     BLOCK_SIZE * 5,
                 ),
                 Vector2(VELOCITY_X, 0),
                 load_image(f"assets/players/player-{random.randint(1, 20)}.png"),
                 load_image(f"assets/ships/ship-1.png"),
-                JumpControllerAI(),
+                jump_controller,
                 True,
                 player_sprite_group,
             )
@@ -219,17 +228,12 @@ def check_collisions(
 def play(
     screen: pygame.Surface,
     clock: pygame.time.Clock,
-    level_id,
-    progress=0,
-    draw_debug=False,
-    # num_generations=100,
-    # population_size=100,
-    # mutation_rate=0.01,
-    # crossover_rate=0.7,
-    # elitism_rate=0.2,
-    # screen=None,
-    # clock=None,
-    # debug=False,
+    level_id: int,
+    best_ai_player: Union[Player, None],
+    generation: int,
+    num_ai_players: int,
+    progress: float = 0,
+    draw_debug: bool = False,
 ):
     map = load_map(level_id)
     (
@@ -240,7 +244,15 @@ def play(
         floor_sprite_group,
         floor,
         camera,
-    ) = load_level(map, progress)
+    ) = load_level(
+        map,
+        progress,
+        num_manual_players=0,
+        num_ai_players=num_ai_players,
+        best_ai_player=best_ai_player,
+    )
+
+    best_score = 100 * best_ai_player.died_at if best_ai_player else 0
 
     alpha_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
 
@@ -272,7 +284,8 @@ def play(
     progress_bar = ProgressBar(SCREEN_SIZE[0] / 4, 30, SCREEN_SIZE[0] / 2, 20, progress)
 
     go_to_pause = False
-    while not go_to_pause or True:
+    debug = False
+    while not go_to_pause:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -287,33 +300,46 @@ def play(
                         floor_sprite_group,
                         floor,
                         camera,
-                    ) = load_level(map, 0)
+                    ) = load_level(
+                        map,
+                        0,
+                        num_manual_players=0,
+                        num_ai_players=num_ai_players,
+                        best_ai_player=best_ai_player,
+                    )
                 elif event.key == pygame.K_p:
-                    go_to_pause = not go_to_pause
+                    go_to_pause = True
+                elif event.key == pygame.K_d:
+                    debug = not debug
+
         if pygame.key.get_pressed()[pygame.K_LEFT]:
             camera.x -= VELOCITY_X * 5
         if pygame.key.get_pressed()[pygame.K_RIGHT]:
             camera.x += VELOCITY_X * 5
 
-        still_alive = False
-        for player in players:
-            if not player.dead:
-                still_alive = True
+        # 1. Update tiles, players, and camera
+        tile_sprite_group.update()
+        player_sprite_group.update()
+        floor_sprite_group.update()
 
-        if still_alive:
-            # 1. Update tiles, players, and camera
-            tile_sprite_group.update()
-            player_sprite_group.update()
-            floor_sprite_group.update()
-
-        if still_alive:
-            camera.x += VELOCITY_X
-            # camera.y += player.velocity.y
+        camera.x += VELOCITY_X
+        # camera.y += player.velocity.y
 
         progress_bar.progress = camera.x / (len(map[0]) * BLOCK_SIZE)
 
         # 2. Check for collisions and update players as necessary
-        check_collisions(players, elements, floor, len(map[0]) * BLOCK_SIZE)
+        # check_collisions(players, elements, floor, len(map[0]) * BLOCK_SIZE)
+
+        at_least_one_alive = False
+        for player in players:
+            if not player.dead:
+                at_least_one_alive = True
+        if not at_least_one_alive:
+            player_best = None
+            for player in players:
+                if not player_best or player.died_at > player_best.died_at:
+                    player_best = player
+            return player_best
 
         # 3. Redraw
         tile_sprite_group.draw(screen)
@@ -405,9 +431,22 @@ def play(
 
         progress_bar.draw(screen)
 
+        font = pygame.font.Font(None, 20)
+
+        text = font.render(f"Generation {generation}", True, (255, 255, 255))
+        text_rect = text.get_rect()
+        text_rect.topleft = (20, 20)
+        screen.blit(text, text_rect)
+
+        text = font.render(f"Best score: {(best_score):.2f}%", True, (255, 255, 255))
+        text_rect = text.get_rect()
+        text_rect.topleft = (20, 45)
+        screen.blit(text, text_rect)
+
         pygame.display.flip()
         clock.tick(60)
-        while go_to_pause:
+
+        while debug:
             next_frame = False
             for event in pygame.event.get():
 
@@ -415,8 +454,8 @@ def play(
                     pygame.quit()
                     quit()
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
-                        go_to_pause = not go_to_pause
+                    if event.key == pygame.K_d:
+                        debug = not debug
                     elif event.key == pygame.K_n:
                         next_frame = True
 
@@ -426,7 +465,7 @@ def play(
             if next_frame:
                 break
 
-    # if go_to_pause:
-    #     from screens.pause import pause
+    if go_to_pause:
+        from screens.pause import pause
 
-    #     pause(screen, clock, level_id, progress_bar.progress)
+        pause(screen, clock, level_id, progress_bar.progress)

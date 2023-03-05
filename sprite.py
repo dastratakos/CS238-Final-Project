@@ -144,7 +144,7 @@ class Player(ImageSprite):
 
         self.dead = False
         self.died_at = 0  # Progress at which the player died
-        
+
         self.is_ai = is_ai
 
     def add_particle(self):
@@ -162,7 +162,153 @@ class Player(ImageSprite):
         else:
             self.velocity.y = max(self.velocity.y - gravity, -VELOCITY_MAX_FALL)
 
-    def update(self):
+    def check_collisions_x(self, objects: dict):
+        """Checks for collisions in the x direction.
+
+        Args:
+            objects (dict): Dictionary from tile coordinates to pygame Sprites.
+        """
+        for x in range(-1, 2):
+            for y in range(-1, 2):
+                object = objects.get((self.rect.x + x, self.rect.y + y))
+                if not object or not pygame.sprite.collide_mask(self, object):
+                    continue
+
+                match object.collision_type:
+                    case type if type in [
+                        CollisionType.SOLID,
+                        CollisionType.SOLID_TOP,
+                        CollisionType.SOLID_BOTTOM,
+                        CollisionType.SPIKE,
+                    ]:
+                        self.dead = True
+                        self.score = self.rect.x
+                        self.velocity = Vector2(0, 0)
+                        self.rect.right = object.rect.left
+                        return
+                    case CollisionType.PORTAL_FLY_START:
+                        self.flying = True
+                    case CollisionType.PORTAL_FLY_END:
+                        self.flying = False
+                    case CollisionType.PORTAL_GRAVITY_REVERSE:
+                        self.gravity_reversed = True
+                    case CollisionType.PORTAL_GRAVITY_NORMAL:
+                        self.gravity_reversed = False
+                    case CollisionType.JUMP_PAD:
+                        self.velocity.y = -self.velocity_jump_pad
+                    case CollisionType.END:
+                        self.won = True
+                        self.velocity = Vector2(0, 0)
+                        return
+
+    def check_collisions_y(self, objects: dict):
+        """Checks for collisions in the y direction.
+
+        Args:
+            objects (dict): Dictionary from tile coordinates to pygame Sprites.
+        """
+        # If the player is at the floor level, there will be no other collisions
+        floor_level = 23 * BLOCK_SIZE
+        if self.rect.bottom >= floor_level:  # TODO: change based on level
+            self.rect.bottom = floor_level
+            self.velocity.y = 0
+            self.should_jump = False
+            self.on_ground = True
+            return
+
+        for x in range(-1, 2):
+            for y in range(-1, 2):
+                object = objects.get(
+                    (self.rect.x // BLOCK_SIZE + x, self.rect.y // BLOCK_SIZE + y)
+                )
+                if not object or not pygame.sprite.collide_mask(self, object):
+                    continue
+
+                match object.collision_type:
+                    case type if type in [
+                        CollisionType.SOLID,
+                        CollisionType.SOLID_TOP,
+                        CollisionType.SOLID_BOTTOM,
+                    ]:
+                        if not self.gravity_reversed:
+                            if self.velocity.y > 0:  # player is falling
+                                self.rect.bottom = object.rect.top + 1
+                                self.velocity.y = 0.001
+                                self.should_jump = False
+                                self.on_ground = True
+                            elif self.velocity.y < 0:  # player is jumping
+                                self.rect.top = object.rect.bottom
+                        else:
+                            if self.velocity.y < 0:  # player is falling
+                                self.rect.top = object.rect.bottom
+                                self.velocity.y = 0.001
+                                self.on_ground = True
+                                self.should_jump = False
+                            elif self.velocity.y > 0:  # player is jumping
+                                self.rect.bottom = object.rect.top - 1
+                    case CollisionType.SPIKE:
+                        self.dead = True
+                        self.score = self.rect.x
+                        self.velocity = Vector2(0, 0)
+                        return
+
+    def update(self, objects: dict):
+        """Updates the player.
+
+        Args:
+            objects (dict): Dictionary from tile coordinates to pygame Sprites.
+        """
+        if self.dead:
+            return
+
+        # Move x
+        self.rect.x += self.velocity.x
+
+        # Check collisions x
+        self.check_collisions_x(objects)
+
+        # TODO: ROTATE IMAGE
+
+        # Update velocity.y (gravity, then jumping)
+        if not self.flying:
+            self.apply_gravity(GRAVITY)
+            if self.on_ground:
+                self.add_particle()
+        else:
+            self.apply_gravity(GRAVITY / 2)
+            self.add_particle()
+        
+        if self.jump_controller.should_jump():
+            object = objects.get((self.rect.x // BLOCK_SIZE, self.rect.y // BLOCK_SIZE))
+            if object and object.collision_type == CollisionType.JUMP_ORB:
+                self.velocity.y = self.velocity_jump_orb * (
+                    1 if self.gravity_reversed else -1
+                )
+            elif not self.flying:
+                if self.on_ground and not self.gravity_reversed:
+                    self.velocity_y = -self.velocity_jump
+                elif self.on_ceiling and self.gravity_reversed:
+                    self.velocity.y = self.velocity_jump
+            else:
+                if not self.gravity_reversed:
+                    self.velocity.y = max(self.velocity.y + -GRAVITY * 5, -GRAVITY * 5)
+                else:
+                    self.velocity.y = min(self.velocity.y + GRAVITY * 5, GRAVITY * 5)
+
+        # Move y
+        self.rect.y += self.velocity.y
+        self.on_ground = False
+
+        # Check collisions y
+        self.check_collisions_y(objects)
+
+        # Remove old particles
+        for particle in self.particles:
+            particle.update()
+            if particle.ttl <= 0:
+                self.particles.remove(particle)
+
+    def update_old(self):
         # Remove old particles
         for particle in self.particles:
             particle.update()
@@ -172,6 +318,12 @@ class Player(ImageSprite):
         if self.dead:
             return
 
+        inputs = [
+            # distance to nearest obstacle
+            1
+            if self.flying
+            else 0,
+        ]
         if self.jump_controller.should_jump():
             self.should_jump = True
 
