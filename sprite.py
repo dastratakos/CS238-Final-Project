@@ -137,8 +137,7 @@ class Player(ImageSprite):
         self.jump_controller = jump_controller
 
         self.dead = False
-        # self.died_at = 0  # Progress at which the player died
-        self.score = 0
+        self.score = 0  # x position when the player died
 
         self.is_ai = is_ai
 
@@ -295,7 +294,7 @@ class Player(ImageSprite):
                     self.velocity.y = max(self.velocity.y + -GRAVITY * 5, -GRAVITY * 5)
                 else:
                     self.velocity.y = min(self.velocity.y + GRAVITY * 5, GRAVITY * 5)
-        
+
         # Update angle, surf_pivot, and image_pivot
         surf_pivot, image_pivot = None, None
         if self.on_ground:
@@ -320,11 +319,11 @@ class Player(ImageSprite):
             self.angle = max(min(self.velocity.y * -2, 20), -20)
             surf_pivot = self.rect.midleft
             image_pivot = Vector2(0, BLOCK_SIZE / 2)
-        else: # not on the ground and not flying (i.e., spinning in air)
+        else:  # not on the ground and not flying (i.e., spinning in air)
             self.angle -= 7.2
             surf_pivot = self.rect.center
             image_pivot = Vector2(BLOCK_SIZE / 2, BLOCK_SIZE / 2)
-        
+
         # Rotate image
         if surf_pivot and image_pivot:
             rotated_image, rotated_image_rect = rotate_image(
