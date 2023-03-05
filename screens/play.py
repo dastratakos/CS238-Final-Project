@@ -33,6 +33,15 @@ def play(
 
         while debug:
             next_frame = False
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_n]:
+                next_frame = True
+            elif keys[pygame.K_LEFT]:
+                game.camera.x -= VELOCITY_X * 5
+                next_frame = True
+            elif keys[pygame.K_RIGHT]:
+                game.camera.x += VELOCITY_X * 5
+                next_frame = True
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -46,14 +55,6 @@ def play(
                         debug = False
                     elif event.key == pygame.K_d:
                         debug = False
-                    elif event.key == pygame.K_n:
-                        next_frame = True
-                    elif event.key == pygame.K_LEFT:
-                        game.camera.x -= VELOCITY_X * 5
-                        next_frame = True
-                    elif event.key == pygame.K_RIGHT:
-                        game.camera.x += VELOCITY_X * 5
-                        next_frame = True
 
             pygame.display.update()
             clock.tick(15)
