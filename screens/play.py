@@ -53,10 +53,10 @@ def play(
                         next_frame = True
                     elif event.key == pygame.K_LEFT:
                         game.camera.x -= VELOCITY_X * 5
-                        next_frame = True  # TODO: this is not quite right
+                        next_frame = True
                     elif event.key == pygame.K_RIGHT:
                         game.camera.x += VELOCITY_X * 5
-                        next_frame = True  # TODO: this is not quite right
+                        next_frame = True
 
             pygame.display.update()
             clock.tick(15)
@@ -79,7 +79,8 @@ def play(
                         pause = False
                         go_to_menu = True
 
-        game.update()
+        if not debug:
+            game.update()
 
         if game.player_sprite_group.sprites()[0].dead:
             attempt_num += 1
