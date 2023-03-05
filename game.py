@@ -1,4 +1,3 @@
-import math
 import random
 
 import pygame
@@ -15,7 +14,7 @@ from config import (
 )
 from jump_controller import JumpControllerManual, JumpControllerAI
 from sprite import ElementSprite, Player, TiledSprite
-from utils import get_sprite_image, load_image, load_map
+from utils import get_sprite_image, load_image
 
 
 class Camera:

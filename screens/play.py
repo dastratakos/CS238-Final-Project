@@ -1,10 +1,6 @@
 import pygame
 
-from config import (
-    BLOCK_SIZE,
-    SCREEN_SIZE,
-    VELOCITY_X,
-)
+from config import BLOCK_SIZE, SCREEN_SIZE, VELOCITY_X
 from game import Game
 from utils import load_map
 
@@ -88,13 +84,13 @@ def play(
 
         # Redraw
         game.tile_sprite_group.draw(screen)
-        
+
         screen.blit(game.floor.image, game.floor.rect.move(0, -game.camera.y))
-        
+
         for element in game.element_sprite_group:
             offset_rect = element.rect.move(-game.camera.x, -game.camera.y)
             screen.blit(element.image, offset_rect)
-        
+
         # player particles
         alpha_surface.fill((255, 255, 255, 1), special_flags=pygame.BLEND_RGBA_MULT)
         for player in game.player_sprite_group:
@@ -105,7 +101,7 @@ def play(
                     particle.rect.move(-game.camera.x, -game.camera.y),
                 )
         screen.blit(alpha_surface, (0, 0))
-        
+
         for player in game.player_sprite_group:
             screen.blit(
                 player.ship_image if player.flying else player.image,
