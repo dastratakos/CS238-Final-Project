@@ -97,7 +97,7 @@ class Game:
                 jump_controller = JumpControllerAI()
             Player(
                 (
-                    BLOCK_SIZE * 5 - BLOCK_SIZE * 3 * i / num_ai_players,
+                    BLOCK_SIZE * -5 - (BLOCK_SIZE * 3 * i / num_ai_players),
                     self.map_height - BLOCK_SIZE,
                 ),
                 Vector2(VELOCITY_X, 0),
@@ -109,7 +109,7 @@ class Game:
             )
         for _ in range(num_manual_players):
             Player(
-                (BLOCK_SIZE * 5, self.map_height - BLOCK_SIZE),
+                (BLOCK_SIZE * -5, self.map_height - BLOCK_SIZE),
                 Vector2(VELOCITY_X, 0),
                 load_image("assets/players/player-0.png"),
                 load_image(f"assets/ships/ship-1.png"),
@@ -176,12 +176,11 @@ class Game:
 
     def update(self):
         self.player_sprite_group.update(self.element_map)
-        self.tile_sprite_group.update()
-
         if (
             self.player_sprite_group.sprites()[0].rect.x
             > SCREEN_SIZE[0] / 2 - BLOCK_SIZE / 2
         ):
+            self.tile_sprite_group.update()
             self.camera.x += VELOCITY_X
         # self.camera.y += 0 # TODO: camera should follow player
 

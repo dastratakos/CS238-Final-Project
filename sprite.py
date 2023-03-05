@@ -76,6 +76,7 @@ class ElementSprite(ImageSprite):
         super().__init__(position, image, *groups)
         self.collision_type = collision_type
 
+
 class Particle(Sprite):
     def __init__(self, position: tuple, velocity: Vector2, ttl: int, *groups):
         super().__init__(position, *groups)
@@ -163,7 +164,12 @@ class Player(ImageSprite):
         """
         for x in range(-1, 2):
             for y in range(-1, 2):
-                object = element_map.get((self.rect.x + x, self.rect.y + y))
+                tile_coord = (
+                    self.rect.center[0] // BLOCK_SIZE + x,
+                    self.rect.center[1] // BLOCK_SIZE + y,
+                )
+                object = element_map.get(tile_coord)
+                print("tile_coord, object:", tile_coord, object)
                 if not object or not pygame.sprite.collide_mask(self, object):
                     continue
 
@@ -211,11 +217,15 @@ class Player(ImageSprite):
 
         for x in range(-1, 2):
             for y in range(-1, 2):
-                object = element_map.get(
-                    (self.rect.x // BLOCK_SIZE + x, self.rect.y // BLOCK_SIZE + y)
+                tile_coord = (
+                    self.rect.center[0] // BLOCK_SIZE + x,
+                    self.rect.center[1] // BLOCK_SIZE + y,
                 )
+                object = element_map.get(tile_coord)
                 if not object or not pygame.sprite.collide_mask(self, object):
                     continue
+                
+                print("Collision")
 
                 match object.collision_type:
                     case type if type in [
@@ -270,9 +280,11 @@ class Player(ImageSprite):
         else:
             self.apply_gravity(GRAVITY / 2)
             self.add_particle()
-        
+
         if self.jump_controller.should_jump():
-            object = element_map.get((self.rect.x // BLOCK_SIZE, self.rect.y // BLOCK_SIZE))
+            object = element_map.get(
+                (self.rect.x // BLOCK_SIZE, self.rect.y // BLOCK_SIZE)
+            )
             if object and object.collision_type == CollisionType.JUMP_ORB:
                 self.velocity.y = self.velocity_jump_orb * (
                     1 if self.gravity_reversed else -1
