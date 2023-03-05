@@ -28,7 +28,12 @@ def resize_image(
 
 def close_to_black(color: Tuple[int, int, int]) -> bool:
     r, g, b = color
-    return r == g and r == b and r < 150 and g < 150 and b < 150
+    return r == g and r == b and r < 150
+
+
+def close_to_white(color: Tuple[int, int, int]) -> bool:
+    r, g, b = color
+    return r == g and r == b and r > 150
 
 
 def fill_player(
@@ -77,12 +82,11 @@ def fill_ship(
     """
     w, h = image.get_size()
     r1, g1, b1 = color1
-    r2, g2, b2 = color2
     for x in range(w):
         for y in range(h):
-            r, g, b, a = image.get_at((x, y))
-            if (r, g, b) == (255, 255, 255):
-                image.set_at((x, y), pygame.Color(r1, g1, b1, a))
+            r, g, b, _ = image.get_at((x, y))
+            if close_to_white((r, g, b)):
+                image.set_at((x, y), pygame.Color(r1, g1, b1, 255))
 
 
 class FillType(Enum):
