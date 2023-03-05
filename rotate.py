@@ -9,11 +9,11 @@ def blitRotate(surf, image, pos, originPos, angle):
     """Rotates an image
 
     Args:
-        surf (_type_): The surface to draw on
-        image (_type_): The original image (not rotated)
-        pos (_type_): The position of the pivot point relative to the surface
-        originPos (_type_): The position of the pivot point relative to the image
-        angle (_type_): The angle of rotation in degrees
+        surf (_type_): The surface to draw on.
+        image (_type_): The original image (not rotated).
+        pos (_type_): The position of the pivot point relative to the surface.
+        originPos (_type_): The position of the pivot point relative to the image.
+        angle (_type_): The angle of rotation in degrees.
     """
     image_rect = image.get_rect(topleft=(pos[0] - originPos[0], pos[1] - originPos[1]))
     offset_center_to_pivot = pygame.math.Vector2(pos) - image_rect.center

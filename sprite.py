@@ -1,10 +1,11 @@
+from __future__ import annotations
 import math
 import random
+from typing import TYPE_CHECKING
 
 import pygame
 from pygame.math import Vector2
 
-from utils import load_image, resize_image, rotate_image
 
 from config import (
     BLOCK_SIZE,
@@ -15,7 +16,10 @@ from config import (
     VELOCITY_JUMP_ORB,
     CollisionType,
 )
-from jump_controller import JumpController
+from utils import load_image, resize_image, rotate_image
+
+if TYPE_CHECKING:
+    from jump_controller import JumpController
 
 
 class Sprite(pygame.sprite.Sprite):
@@ -102,46 +106,74 @@ class Player(ImageSprite):
         velocity: Vector2,
         image: pygame.image,
         ship_image: pygame.image,
-        jump_controller: JumpController,
-        is_ai: bool,
-        *groups,
+        jump_controller: JumpController = None,
+        render_particles: bool = True,
+        angle: int = 0,
+        gravity_reversed: bool = False,
+        flying: bool = False,
+        on_ground: bool = False,
+        on_ceiling: bool = False,
+        sprite_groups: list[pygame.sprite.Group] = [],
     ):
-        super().__init__(position, image, *groups)
+        super().__init__(position, image, *sprite_groups)
 
-        # Build ship image
-        self.ship_image = load_image("assets/ships/blank.png")
-        self.ship_image.blit(
-            resize_image(image, (BLOCK_SIZE / 2, BLOCK_SIZE / 2)),
-            (BLOCK_SIZE / 4, BLOCK_SIZE / 4),
-        )
-        self.ship_image.blit(ship_image, (0, 0))
+        self.original_image = image
+
+        self.ship_image = self.build_ship_image(image, ship_image)
         self.original_ship_image = self.ship_image
 
         self.particles = []
+        self.render_particles = render_particles
 
         self.velocity = velocity
-        self.velocity_jump = VELOCITY_JUMP
-        self.velocity_jump_pad = VELOCITY_JUMP_PAD
-        self.velocity_jump_orb = VELOCITY_JUMP_ORB
+        self.angle = angle
 
-        self.gravity_reversed = False
-        self.flying = False
-
-        self.should_jump = False
-        self.on_ground = False
-        self.on_ceiling = False
-
-        self.original_image = image
-        self.angle = 0
+        self.gravity_reversed = gravity_reversed
+        self.flying = flying
+        self.on_ground = on_ground
+        self.on_ceiling = on_ceiling  # TODO: do something with this (e.g. when flying)
 
         self.jump_controller = jump_controller
+        self.should_jump = False
 
         self.dead = False
         self.score = 0  # x position when the player died
 
-        self.is_ai = is_ai
+    def clone(self):
+        return Player(
+            self.rect,
+            self.velocity,
+            self.original_image,
+            self.original_ship_image,
+            render_particles=False,
+            angle=self.angle,
+            gravity_reversed=self.gravity_reversed,
+            flying=self.flying,
+            on_ground=self.on_ground,
+            on_ceiling=self.on_ceiling,
+        )
+
+    def build_ship_image(self, image: pygame.image, ship_image: pygame.image):
+        """Returns a new pygame.image with the player sitting inside the ship.
+
+        Args:
+            image (pygame.image): The player image.
+            ship_image (pygame.image): The ship image.
+
+        Returns:
+            pygame.image: The new image.
+        """
+        new_image = load_image("assets/ships/blank.png")
+        new_image.blit(
+            resize_image(image, (BLOCK_SIZE / 2, BLOCK_SIZE / 2)),
+            (BLOCK_SIZE / 4, BLOCK_SIZE / 4),
+        )
+        new_image.blit(ship_image, (0, 0))
+        return new_image
 
     def add_particle(self):
+        if not self.render_particles:
+            return
         self.particles.append(
             Particle(
                 (self.rect.left - 6, self.rect.bottom - 6),
@@ -193,7 +225,7 @@ class Player(ImageSprite):
                     case CollisionType.PORTAL_GRAVITY_NORMAL:
                         self.gravity_reversed = False
                     case CollisionType.JUMP_PAD:
-                        self.velocity.y = -self.velocity_jump_pad
+                        self.velocity.y = -VELOCITY_JUMP_PAD
                     case CollisionType.END:
                         self.won = True
                         self.velocity = Vector2(0, 0)
@@ -256,11 +288,12 @@ class Player(ImageSprite):
             element_map (dict): Dictionary from tile coordinates to pygame Sprites.
             floor_level (int): The y coordinate of the floor.
         """
-        # Remove old particles
-        for particle in self.particles:
-            particle.update()
-            if particle.ttl <= 0:
-                self.particles.remove(particle)
+        if self.render_particles:
+            # Remove old particles
+            for particle in self.particles:
+                particle.update()
+                if particle.ttl <= 0:
+                    self.particles.remove(particle)
 
         if self.dead:
             return
@@ -285,14 +318,14 @@ class Player(ImageSprite):
             tile_coord = (self.rect.x // BLOCK_SIZE, self.rect.y // BLOCK_SIZE)
             element = element_map.get(tile_coord)
             if element and element.collision_type == CollisionType.JUMP_ORB:
-                self.velocity.y = self.velocity_jump_orb * (
+                self.velocity.y = VELOCITY_JUMP_ORB * (
                     1 if self.gravity_reversed else -1
                 )
             elif not self.flying:
                 if self.on_ground and not self.gravity_reversed:
-                    self.velocity.y = -self.velocity_jump
+                    self.velocity.y = -VELOCITY_JUMP
                 elif self.on_ceiling and self.gravity_reversed:
-                    self.velocity.y = self.velocity_jump
+                    self.velocity.y = VELOCITY_JUMP
             else:
                 if not self.gravity_reversed:
                     self.velocity.y = max(self.velocity.y + -GRAVITY * 5, -GRAVITY * 5)

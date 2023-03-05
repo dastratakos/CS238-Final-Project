@@ -11,7 +11,7 @@ def simulate(
     clock: pygame.time.Clock,
     level_id: int,
     num_manual_players: int = 0,
-    num_ai_players: int = 200,
+    num_ai_players: int = 10,
 ):
     generation = 0
     best_ai_player = None

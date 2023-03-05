@@ -13,8 +13,8 @@ from config import (
     CollisionType,
 )
 from jump_controller import JumpControllerManual, JumpControllerAI
-from sprite import ElementSprite, Player, TiledSprite
-from utils import get_sprite_image, load_image
+from sprite import ElementSprite, ImageSprite, Player, TiledSprite
+from utils import FillType, load_image
 
 
 class Camera:
@@ -72,10 +72,9 @@ class Game:
         # sprite group for all the background tiles
         self.tile_sprite_group = self.init_tiles()
 
-        self.floor = ElementSprite(
+        self.floor = ImageSprite(
             (0, self.map_height),
             load_image("assets/highlight.png", (SCREEN_SIZE[0], 2.5)),
-            CollisionType.SOLID,
         )
 
         self.progress_bar = ProgressBar(SCREEN_SIZE[0] / 4, 30, SCREEN_SIZE[0] / 2, 20)
@@ -100,21 +99,22 @@ class Game:
                     self.map_height - BLOCK_SIZE,
                 ),
                 Vector2(VELOCITY_X, 0),
-                load_image(f"assets/players/player-{random.randint(1, 20)}.png"),
-                load_image(f"assets/ships/ship-1.png"),
-                jump_controller,
-                True,
-                player_sprite_group,
+                load_image(
+                    f"assets/players/player-{random.randint(1, 20)}.png",
+                    fill_type=FillType.PLAYER,
+                ),
+                load_image(f"assets/ships/ship-1.png", fill_type=FillType.SHIP),
+                jump_controller=jump_controller,
+                sprite_groups=[player_sprite_group],
             )
         for _ in range(num_manual_players):
             Player(
                 (BLOCK_SIZE * -5, self.map_height - BLOCK_SIZE),
                 Vector2(VELOCITY_X, 0),
                 load_image("assets/players/player-0.png"),
-                load_image(f"assets/ships/ship-1.png"),
-                JumpControllerManual(),
-                False,
-                player_sprite_group,
+                load_image(f"assets/ships/ship-1.png", fill_type=FillType.SHIP),
+                jump_controller=JumpControllerManual(),
+                sprite_groups=[player_sprite_group],
             )
         return player_sprite_group
 
@@ -129,7 +129,7 @@ class Game:
                     CollisionType.PORTAL_GRAVITY_REVERSE,
                     CollisionType.PORTAL_GRAVITY_NORMAL,
                 ]
-                image = get_sprite_image(
+                image = load_image(
                     ELEMENTS[id]["filename"],
                     (
                         BLOCK_SIZE * (2 if is_portal else 1),
@@ -175,11 +175,12 @@ class Game:
 
     def update(self):
         for player in self.player_sprite_group:
-            player.should_jump = player.jump_controller.should_jump(
-                player.rect, self.element_map
-            )
+            if not player.dead:
+                player.should_jump = player.jump_controller.should_jump(
+                    player, self.element_map, self.map_height
+                )
             player.update(self.element_map, self.map_height)
-        
+
         # Starting animation: don't move the camera until the player is past the
         # first third of the screen
         if self.player_sprite_group.sprites()[0].rect.x > SCREEN_SIZE[0] / 3:

@@ -17,7 +17,7 @@ clock = pygame.time.Clock()
 player = Player(
     (size[0] / 2, size[1] / 2 - BLOCK_SIZE),
     Vector2(0, 0),
-    load_image(f"assets/players/player-0.png"),
+    load_image(f"assets/players/player-1.png", fill_type=FillType.PLAYER),
     load_image(f"assets/ships/ship-1.png", fill_type=FillType.SHIP),
     JumpControllerManual(),
 )
@@ -46,7 +46,7 @@ while not done:
     print("  velocity", player.velocity)
     print("element", element.rect, element.rect.top)
 
-    screen.fill(0)
+    screen.fill(255)
 
     screen.blit(player.image, player.rect)
     screen.blit(element.image, element.rect)

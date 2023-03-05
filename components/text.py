@@ -2,40 +2,42 @@ from typing import Tuple
 
 import pygame
 
+pygame.Rect
+
 
 class Text:
     def __init__(
         self,
         text: str,
         font_size: int = 20,
-        color=(255, 255, 255),
-        x: int=None,
-        y: int=None,
-        top: int=None,
-        left: int=None,
-        bottom: int=None,
-        right: int=None,
-        topleft: Tuple[int, int]=None,
-        bottomleft: Tuple[int, int]=None,
-        topright: Tuple[int, int]=None,
-        bottomright: Tuple[int, int]=None,
-        midtop: Tuple[int, int]=None,
-        midleft: Tuple[int, int]=None,
-        midbottom: Tuple[int, int]=None,
-        midright: Tuple[int, int]=None,
-        center: Tuple[int, int]=None,
-        centerx: int=None,
-        centery: int=None,
-        size: Tuple[int, int]=None,
-        width: int=None,
-        height: int=None,
-        w: int=None,
-        h: int=None,
+        color: Tuple[int, int, int] = (255, 255, 255),
+        x: int = None,
+        y: int = None,
+        top: int = None,
+        left: int = None,
+        bottom: int = None,
+        right: int = None,
+        topleft: Tuple[int, int] = None,
+        bottomleft: Tuple[int, int] = None,
+        topright: Tuple[int, int] = None,
+        bottomright: Tuple[int, int] = None,
+        midtop: Tuple[int, int] = None,
+        midleft: Tuple[int, int] = None,
+        midbottom: Tuple[int, int] = None,
+        midright: Tuple[int, int] = None,
+        center: Tuple[int, int] = None,
+        centerx: int = None,
+        centery: int = None,
+        size: Tuple[int, int] = None,
+        width: int = None,
+        height: int = None,
+        w: int = None,
+        h: int = None,
     ):
         self.text = text
         self.font_size = font_size
         self.color = color
-        
+
         self.x = x
         self.y = y
         self.top = top
