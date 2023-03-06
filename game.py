@@ -82,7 +82,7 @@ class Game:
     def init_players(self, num_manual_players, num_ai_players, best_ai_player):
         player_sprite_group = pygame.sprite.Group()
         for i in range(num_ai_players):
-            if i == 0:
+            if i == num_ai_players - 1:
                 # Make the first player the same as the best player from the
                 # previous generation so that the NN does not devolve
                 if best_ai_player:
@@ -108,7 +108,8 @@ class Game:
 
             Player(
                 (
-                    BLOCK_SIZE * -5 - (BLOCK_SIZE * 3 * i / num_ai_players),
+                    BLOCK_SIZE * -5
+                    - (BLOCK_SIZE * 3 * (num_ai_players - i - 1) / num_ai_players),
                     self.map_height - BLOCK_SIZE,
                 ),
                 Vector2(VELOCITY_X, 0),
@@ -142,15 +143,15 @@ class Game:
                 image = load_image(
                     ELEMENTS[id]["filename"],
                     (
-                        BLOCK_SIZE * (2 if is_portal else 1),
-                        BLOCK_SIZE * (2 if is_portal else 1),
+                        BLOCK_SIZE * (3 if is_portal else 1),
+                        BLOCK_SIZE * (3 if is_portal else 1),
                     ),
                 )
                 if image:
                     ElementSprite(
                         (
-                            x - (BLOCK_SIZE if is_portal else 0),
-                            y - (BLOCK_SIZE if is_portal else 0),
+                            x - BLOCK_SIZE * (2 if is_portal else 0),
+                            y - BLOCK_SIZE * (2 if is_portal else 0),
                         ),
                         image,
                         ELEMENTS[id]["collision_type"],
@@ -191,11 +192,18 @@ class Game:
                 )
             player.update(self.element_map, self.map_height)
 
+        player_x = self.player_sprite_group.sprites()[0].rect.x
+
         # Starting animation: don't move the camera until the player is past the
         # first third of the screen
-        if self.player_sprite_group.sprites()[0].rect.x > SCREEN_SIZE[0] / 3:
+        if player_x > SCREEN_SIZE[0] / 3:
             self.tile_sprite_group.update()
             self.camera.x += VELOCITY_X
         # self.camera.y += 0 # TODO: camera should follow player
 
-        self.progress_bar.progress = self.camera.x / self.map_width
+        if player_x < SCREEN_SIZE[0] / 3:
+            self.progress_bar.progress = max(0, player_x + BLOCK_SIZE * 2) / self.map_width
+        else:
+            self.progress_bar.progress = (
+                self.camera.x + SCREEN_SIZE[0] / 3 + BLOCK_SIZE * 2
+            ) / self.map_width

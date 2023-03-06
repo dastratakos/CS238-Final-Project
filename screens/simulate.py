@@ -53,11 +53,11 @@ def simulate(
                 if keys[pygame.K_n]:
                     next_frame = True
                 elif keys[pygame.K_LEFT]:
-                    game.camera.x -= VELOCITY_X * 5
-                    next_frame = True
+                    game.camera.x -= VELOCITY_X * 15
+                    break
                 elif keys[pygame.K_RIGHT]:
-                    game.camera.x += VELOCITY_X * 5
-                    next_frame = True
+                    game.camera.x += VELOCITY_X * 15
+                    break
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()

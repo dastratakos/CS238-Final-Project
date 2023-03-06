@@ -28,6 +28,8 @@ class ProgressBar:
         self.rect = pygame.Rect(x, y, width, height)
 
     def draw(self, screen):
+        progress = min(self.progress, 1)
+        
         # background
         pygame.draw.circle(
             screen,
@@ -67,7 +69,7 @@ class ProgressBar:
             screen,
             self.color,
             (
-                self.x + (self.width - self.height) * self.progress + self.height / 2,
+                self.x + (self.width - self.height) * progress + self.height / 2,
                 self.y + self.height / 2,
             ),
             self.height / 2,
@@ -78,7 +80,7 @@ class ProgressBar:
             (
                 self.x + self.height / 2,
                 self.y,
-                (self.width - self.height) * self.progress,
+                (self.width - self.height) * progress,
                 self.height,
             ),
             0,
@@ -95,7 +97,7 @@ class ProgressBar:
             screen,
             self.highlight_color,
             (
-                self.x + (self.width - self.height) * self.progress + self.height / 2,
+                self.x + (self.width - self.height) * progress + self.height / 2,
                 self.y + self.height / 4 + self.height / 8,
             ),
             self.height / 8,
@@ -106,7 +108,7 @@ class ProgressBar:
             (
                 self.x + self.height / 2,
                 self.y + self.height / 4,
-                (self.width - self.height) * self.progress,
+                (self.width - self.height) * progress,
                 self.height / 4,
             ),
             0,
@@ -114,7 +116,7 @@ class ProgressBar:
 
         # text
         text = Text(
-            f"{(100 * self.progress):.0f}%",
+            f"{(100 * progress):.0f}%",
             36,
             self.text_color,
             midleft=(self.x + self.width + 10, self.y + self.height / 2),

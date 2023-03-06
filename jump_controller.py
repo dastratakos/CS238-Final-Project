@@ -31,6 +31,7 @@ class Net(nn.Module):
 
         # 5 inputs, size 3 hidden layer, 1 output
         self.fc1 = nn.Linear(5, 3)
+        self.fc1 = nn.Linear(1, 3)
         self.fc2 = nn.Linear(3, 1)
 
     def forward(self, x):
@@ -45,10 +46,21 @@ class Net(nn.Module):
 class JumpControllerAI(JumpController):
     def __init__(self, parent_net=None):
         self.farthest_distance = 0
+
         if parent_net:
             self.net = parent_net
+
+            # breakpoint()
+
+            EVOLUTION_STRENGTH = 2  # The strength of the mutation
+            EVOLUTION_FREQ = 0.5  # How many of the weights will be mutated
             for param in self.net.parameters():
-                param.data += torch.randn(param.size()) * 0.1
+                mask = torch.Tensor(param.size()).uniform_() <= EVOLUTION_FREQ
+                mutation = mask * (torch.randn(param.size()) * EVOLUTION_STRENGTH)
+                # breakpoint()
+                param.data += mutation
+
+            # breakpoint()
         else:
             self.net = Net()
 
@@ -143,26 +155,31 @@ class JumpControllerAI(JumpController):
     def should_jump(self, player: Player, element_map: dict, floor_level: int):
         dist_to_death = self.hallucinate_dist_to_death(player, element_map, floor_level)
 
-        tile_coord = (player.rect.x // BLOCK_SIZE, player.rect.y // BLOCK_SIZE)
-        element = element_map.get(tile_coord)
-        on_jump_orb = (
-            element.collision_type == CollisionType.JUMP_ORB if element else False
-        )
+        # tile_coord = (player.rect.x // BLOCK_SIZE, player.rect.y // BLOCK_SIZE)
+        # element = element_map.get(tile_coord)
+        # on_jump_orb = (
+        #     element.collision_type == CollisionType.JUMP_ORB if element else False
+        # )
 
-        will_die_if_jump = self.hallucinate_will_die_if_jump(
-            player, element_map, floor_level, on_jump_orb
-        )
+        # will_die_if_jump = self.hallucinate_will_die_if_jump(
+        #     player, element_map, floor_level, on_jump_orb
+        # )
 
-        vertical_obstacle_height = self.get_vertical_obstacle_height(
-            player, element_map, floor_level
-        )
+        # vertical_obstacle_height = self.get_vertical_obstacle_height(
+        #     player, element_map, floor_level
+        # )
+        
+        if player.flying:
+            return dist_to_death < 200
+        
+        return dist_to_death < 30
 
         features = [
-            int(player.flying),
-            dist_to_death,
-            int(on_jump_orb),
-            int(will_die_if_jump),
-            vertical_obstacle_height,
+            # int(player.flying),
+            (240 - dist_to_death) / 200,
+            # int(on_jump_orb),
+            # int(will_die_if_jump),
+            # vertical_obstacle_height,
         ]
 
         # print(time.time(), features, end=" ")
