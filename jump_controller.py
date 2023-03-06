@@ -74,8 +74,7 @@ class JumpControllerAI(JumpController):
 
         Args:
             player (Player): The player to simulate.
-            element_map (dict): Dictionary from tile coordinates to pygame
-                Sprites.
+            element_map (dict): Dictionary from tile coordinates to pygame Sprites.
             floor_level (int): The y coordinate of the floor.
 
         Returns:

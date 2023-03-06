@@ -80,6 +80,9 @@ class Game:
         self.progress_bar = ProgressBar(SCREEN_SIZE[0] / 4, 30, SCREEN_SIZE[0] / 2, 20)
 
     def init_players(self, num_manual_players, num_ai_players, best_ai_player):
+        # How much space the line of AI players should take up
+        AI_PLAYERS_SPREAD = SCREEN_SIZE[0] / 3
+        
         player_sprite_group = pygame.sprite.Group()
         for i in range(num_ai_players):
             if i == num_ai_players - 1:
@@ -109,7 +112,7 @@ class Game:
             Player(
                 (
                     BLOCK_SIZE * -5
-                    - (BLOCK_SIZE * 3 * (num_ai_players - i - 1) / num_ai_players),
+                    - (AI_PLAYERS_SPREAD * (num_ai_players - i - 1) / num_ai_players),
                     self.map_height - BLOCK_SIZE,
                 ),
                 Vector2(VELOCITY_X, 0),
@@ -192,7 +195,7 @@ class Game:
                 )
             player.update(self.element_map, self.map_height)
 
-        player_x = self.player_sprite_group.sprites()[0].rect.x
+        player_x = self.player_sprite_group.sprites()[-1].rect.x
 
         # Starting animation: don't move the camera until the player is past the
         # first third of the screen
