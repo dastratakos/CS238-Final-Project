@@ -11,9 +11,6 @@ def main():
     pygame.display.set_icon(load_image("assets/icon.png"))
     screen = pygame.display.set_mode(SCREEN_SIZE)
     clock = pygame.time.Clock()
-    # font = pygame.font.SysFont("lucidaconsole", 20)
-
-    # game_state = GameState()
 
     menu(screen, clock)
 

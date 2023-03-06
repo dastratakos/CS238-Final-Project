@@ -31,7 +31,6 @@ class Net(nn.Module):
 
         # 5 inputs, size 3 hidden layer, 1 output
         self.fc1 = nn.Linear(5, 3)
-        self.fc1 = nn.Linear(1, 3)
         self.fc2 = nn.Linear(3, 1)
 
     def forward(self, x):
