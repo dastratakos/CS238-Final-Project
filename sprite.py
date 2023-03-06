@@ -318,7 +318,7 @@ class Player(ImageSprite):
                 if particle.ttl <= 0:
                     self.particles.remove(particle)
 
-        if self.dead:
+        if self.dead or self.won:
             return
 
         # Move x

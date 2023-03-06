@@ -100,9 +100,9 @@ def simulate(
             if not debug or next_frame:
                 game.update()
 
-            # Check if all players are dead
+            # Check if all players are dead or all won
             for player in game.player_sprite_group:
-                if not player.dead:
+                if not player.dead and not player.won:
                     break
             else:
                 # Determine the winner and start a new generation
@@ -110,12 +110,10 @@ def simulate(
                 if not best_ai_player or winner.score > best_ai_player.score:
                     best_ai_player = winner
                 generation += 1
-                game = Game(
-                    map,
-                    num_manual_players,
-                    num_ai_players,
-                    best_ai_player=best_ai_player,
-                )
+                if best_ai_player.won:
+                    pause = True
+                else:
+                    break
 
             # Redraw
             game.tile_sprite_group.draw(screen)

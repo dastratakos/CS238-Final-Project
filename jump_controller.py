@@ -91,6 +91,8 @@ class JumpControllerAI(JumpController):
             clone.update(element_map, floor_level)
             if clone.dead:
                 return dist
+            if clone.won:
+                return float("inf")
             if clone.on_ground or clone.flying:  # safe
                 dist = clone.rect.x - curr_x
         return dist
@@ -122,7 +124,7 @@ class JumpControllerAI(JumpController):
             clone.update(element_map, floor_level)
             if clone.dead:
                 return True
-            if clone.on_ground:  # landed safely after the jump
+            if clone.on_ground or clone.won:  # landed safely after the jump
                 return False
         return False
 
