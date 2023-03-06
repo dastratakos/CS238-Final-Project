@@ -1,168 +1,171 @@
 import pygame
 
 from components.button import Button
+from components.rounded_rect import RoundedRect
 from components.text import Text
 from config import BLOCK_SIZE, SCREEN_SIZE, VELOCITY_X
 from game import Game
 from utils import load_map
 
 
+def get_events(pause_button: Button = None):
+    r, p, d, m, n, left, right = False, False, False, False, False, False, False
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+        if pause_button and event.type == pygame.MOUSEBUTTONDOWN:
+            if pause_button.rect.collidepoint(event.pos):
+                p = True
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r:
+                r = True
+            elif event.key == pygame.K_p:
+                p = True
+            elif event.key == pygame.K_d:
+                d = True
+            elif event.key == pygame.K_m:
+                m = True
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_n]:
+            n = True
+        elif keys[pygame.K_LEFT]:
+            left = True
+        elif keys[pygame.K_RIGHT]:
+            right = True
+    return r, p, d, m, n, left, right
+
+
+def debug_loop(screen, clock, game, pause, pause_button):
+    restart, debug, next_frame = False, True, False
+    while debug:
+        restart, p, d, _, next_frame, left, right = get_events(pause_button)
+
+        if p:
+            pause = not pause
+        if restart or d:
+            debug = False
+        if left:
+            game.camera.x -= VELOCITY_X * 15
+        if right:
+            game.camera.x += VELOCITY_X * 15
+
+        draw_debug(screen)
+        if not pause:
+            pause_button.draw(screen)
+
+        pygame.display.update()
+        clock.tick(15)
+
+        if p or next_frame or left or right:
+            # Run the main loop once and come back (debug will still be True)
+            break
+    return restart, pause, debug, next_frame
+
+
+def draw_debug(screen):
+    red = (255, 0, 0)
+    x = SCREEN_SIZE[0] - 25
+    Text("Debug mode", color=red, topright=(x, 65)).draw(screen)
+    Text("n - next frame", color=red, topright=(x, 85)).draw(screen)
+    Text("left/right arrows - move camera", color=red, topright=(x, 105)).draw(screen)
+
+
+def draw_pause(screen):
+    alpha_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
+    alpha_surface.fill((255, 255, 255, 1), special_flags=pygame.BLEND_RGBA_MULT)
+    RoundedRect(
+        50, 75, SCREEN_SIZE[0] - 100, SCREEN_SIZE[1] - 150, (0, 0, 0, 150), 20
+    ).draw(alpha_surface)
+    screen.blit(alpha_surface, (0, 0))
+
+    mid_x, mid_y = SCREEN_SIZE[0] // 2, SCREEN_SIZE[1] // 2
+    Text("Paused", 50, center=(mid_x, mid_y)).draw(screen)
+    Text("p - play", center=(mid_x, mid_y - 50)).draw(screen)
+    Text("r - restart level", center=(mid_x, mid_y - 70)).draw(screen)
+    Text("m - main menu", center=(mid_x, mid_y - 90)).draw(screen)
+
+
 def play(
     screen: pygame.Surface,
     clock: pygame.time.Clock,
     level_id: int,
+    simulate: bool = False,
 ):
+    """This function is the main loop for one level of the game. It creates a
+    Game object and handles all of the controls and drawing for pausing,
+    debugging, and restarting separately from the Game.
+
+    Args:
+        screen (pygame.Surface): _description_
+        clock (pygame.time.Clock): _description_
+        level_id (int): _description_
+        simulate (bool, optional): _description_. Defaults to False.
+
+    Returns:
+        _type_: _description_
+    """
     map = load_map(level_id)
-    game = Game(map, num_manual_players=1)
+    num_manual_players = 0 if simulate else 1
+    num_ai_players = 20 if simulate else 0
+    best_ai_player = None
+
+    def new_game():
+        return Game(map, num_manual_players, num_ai_players, best_ai_player)
+
+    game = new_game()
     attempt_num = 1
-    alpha_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
 
     pause_button = Button(SCREEN_SIZE[0] - 95, 25, 70, 30, "Pause", 20)
 
     go_to_menu, pause, debug, next_frame = False, False, False, False
     while not go_to_menu:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    game = Game(map, num_manual_players=1)
-                    attempt_num += 1
-                elif event.key == pygame.K_p:
-                    pause = True
-                elif event.key == pygame.K_d:
-                    debug = True
-
-        if not debug or next_frame:
-            game.update()
-
-        if game.player_sprite_group.sprites()[0].dead:
+        restart, p, debug, m, *_ = get_events(pause_button)
+        if restart:
             attempt_num += 1
-            game = Game(map, num_manual_players=1)
-        elif game.player_sprite_group.sprites()[0].won:
-            pause = True
-
-        # Redraw
-        game.tile_sprite_group.draw(screen)
-
-        screen.blit(game.floor.image, game.floor.rect.move(0, -game.camera.y))
-
-        for element in game.element_sprite_group:
-            offset_rect = element.rect.move(-game.camera.x, -game.camera.y)
-            screen.blit(element.image, offset_rect)
-
-        # player particles
-        alpha_surface.fill((255, 255, 255, 1), special_flags=pygame.BLEND_RGBA_MULT)
-        for player in game.player_sprite_group:
-            for particle in player.particles:
-                pygame.draw.rect(
-                    alpha_surface,
-                    (255, 255, 255),
-                    particle.rect.move(-game.camera.x, -game.camera.y),
-                )
-        screen.blit(alpha_surface, (0, 0))
-
-        for player in game.player_sprite_group:
-            screen.blit(
-                player.ship_image if player.flying else player.image,
-                player.rect.move(-game.camera.x, -game.camera.y),
+            game = new_game()
+        if p:
+            pause = not pause
+        if pause and m:
+            go_to_menu = True
+        if debug:
+            restart, pause, debug, next_frame = debug_loop(
+                screen, clock, game, pause, pause_button
             )
 
-        game.progress_bar.draw(screen)
+        if not pause and (not debug or next_frame):
+            # Update the game
+            game.update()
 
-        Text(
-            f"ATTEMPT {attempt_num}",
-            50,
-            center=(
-                SCREEN_SIZE[0] / 2 - game.camera.x,
-                game.map_height - 8 * BLOCK_SIZE - game.camera.y,
-            ),
-        ).draw(screen)
+            # Check game status
+            if game.all_dead():
+                if simulate:
+                    furthest_player = max(
+                        game.player_sprite_group.sprites(), key=lambda p: p.score
+                    )
+                    if (
+                        not best_ai_player
+                        or furthest_player.score > best_ai_player.score
+                    ):
+                        best_ai_player = furthest_player
+                attempt_num += 1
+                game = new_game()
+            elif simulate and (winner := game.get_winner()):
+                best_ai_player = winner
+                pause = True
+
+        # Redraw
+        game.draw(screen, attempt_num, simulate)
 
         if debug:
-            Text(
-                "Debug mode",
-                20,
-                color=(255, 0, 0),
-                topright=(SCREEN_SIZE[0] - 25, 65),
-            ).draw(screen)
-            Text(
-                "n - next frame",
-                20,
-                color=(255, 0, 0),
-                topright=(SCREEN_SIZE[0] - 25, 85),
-            ).draw(screen)
-            Text(
-                "left arrow - move camera left",
-                20,
-                color=(255, 0, 0),
-                topright=(SCREEN_SIZE[0] - 25, 105),
-            ).draw(screen)
-            Text(
-                "right arrow - move camera right",
-                20,
-                color=(255, 0, 0),
-                topright=(SCREEN_SIZE[0] - 25, 125),
-            ).draw(screen)
-
-        pause_button.text = "Pause" if not pause else "Play"
-        pause_button.draw(screen)
+            draw_debug(screen)
+        if pause:
+            draw_pause(screen)
+        else:
+            pause_button.draw(screen)
 
         pygame.display.flip()
         clock.tick(60)
-
-        while debug:
-            next_frame = False
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_n]:
-                next_frame = True
-            elif keys[pygame.K_LEFT]:
-                game.camera.x -= VELOCITY_X * 15
-                break
-            elif keys[pygame.K_RIGHT]:
-                game.camera.x += VELOCITY_X * 15
-                break
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_r:
-                        game = Game(map, num_manual_players=1)
-                        attempt_num += 1
-                    elif event.key == pygame.K_p:
-                        pause = True
-                        debug = False
-                    elif event.key == pygame.K_d:
-                        debug = False
-
-            pygame.display.update()
-            clock.tick(15)
-
-            if next_frame:
-                break  # Run the outer while loop once and come back to debug
-
-        while pause:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
-                        pause = False
-                    elif event.key == pygame.K_d:
-                        pause = False
-                        debug = True
-                    elif event.key == pygame.K_m:
-                        pause = False
-                        go_to_menu = True
-
-            pause_button.text = "Pause" if not pause else "Play"
-            pause_button.draw(screen)
-
-            pygame.display.update()
-            clock.tick(15)
 
     if go_to_menu:
         from screens.menu import menu

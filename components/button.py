@@ -1,5 +1,6 @@
 import pygame
 
+from components.rounded_rect import RoundedRect
 from components.text import Text
 
 
@@ -12,8 +13,8 @@ class Button:
         height,
         text,
         font_size=36,
-        color=(100, 100, 100),
-        hover_color=(200, 200, 200),
+        color=(79, 175, 7),
+        hover_color=(239, 243, 247),
         border_radius=10,
     ):
         self.x = x
@@ -35,66 +36,13 @@ class Button:
             self.color if self.rect.collidepoint(mouse_pos) else self.hover_color
         )
 
-        # top left corner
-        pygame.draw.circle(
-            screen,
-            color,
-            (self.x + self.border_radius, self.y + self.border_radius),
-            self.border_radius,
-        )
-        # top right corner
-        pygame.draw.circle(
-            screen,
-            color,
-            (self.x + self.width - self.border_radius, self.y + self.border_radius),
-            self.border_radius,
-        )
-        # bottom left corner
-        pygame.draw.circle(
-            screen,
-            color,
-            (self.x + self.border_radius, self.y + self.height - self.border_radius),
-            self.border_radius,
-        )
-        # bottom right corner
-        pygame.draw.circle(
-            screen,
-            color,
-            (
-                self.x + self.width - self.border_radius,
-                self.y + self.height - self.border_radius,
-            ),
-            self.border_radius,
-        )
+        RoundedRect(
+            self.x, self.y, self.width, self.height, color, self.border_radius
+        ).draw(screen)
 
-        pygame.draw.rect(
-            screen,
-            color,
-            (
-                self.x + self.border_radius,
-                self.y,
-                self.width - 2 * self.border_radius,
-                self.height,
-            ),
-            0,
-        )
-        pygame.draw.rect(
-            screen,
-            color,
-            (
-                self.x,
-                self.y + self.border_radius,
-                self.width,
-                self.height - 2 * self.border_radius,
-            ),
-            0,
-        )
-
-        # text
-        text = Text(
+        Text(
             self.text,
             self.font_size,
             text_color,
             center=(self.x + self.width // 2, self.y + self.height // 2),
-        )
-        text.draw(screen)
+        ).draw(screen)

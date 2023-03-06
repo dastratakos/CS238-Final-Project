@@ -98,6 +98,6 @@ def menu(screen: pygame.Surface, clock: pygame.time.Clock, level_id: int = 0):
 
         play(screen, clock, level_id)
     elif go_to_simulate:
-        from screens.simulate import simulate
+        from screens.play import play
 
-        simulate(screen, clock, level_id)
+        play(screen, clock, level_id, simulate=True)

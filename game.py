@@ -4,6 +4,7 @@ import pygame
 from pygame.math import Vector2
 
 from components.progress_bar import ProgressBar
+from components.text import Text
 from config import (
     BLOCK_SIZE,
     SCREEN_BLOCKS,
@@ -49,6 +50,8 @@ class Game:
         self.map_height = len(map) * BLOCK_SIZE
         self.map_width = len(map[0]) * BLOCK_SIZE
 
+        self.best_ai_player = best_ai_player
+
         # The camera will determine the upper-left corner of the screen
         self.camera = Camera(0, self.map_height + (4 - SCREEN_BLOCKS[1]) * BLOCK_SIZE)
 
@@ -82,7 +85,7 @@ class Game:
     def init_players(self, num_manual_players, num_ai_players, best_ai_player):
         # How much space the line of AI players should take up
         AI_PLAYERS_SPREAD = SCREEN_SIZE[0] / 3
-        
+
         player_sprite_group = pygame.sprite.Group()
         for i in range(num_ai_players):
             if i == num_ai_players - 1:
@@ -206,8 +209,76 @@ class Game:
         # self.camera.y += 0 # TODO: camera should follow player
 
         if player_x < SCREEN_SIZE[0] / 3:
-            self.progress_bar.progress = max(0, player_x + BLOCK_SIZE * 2) / self.map_width
+            self.progress_bar.progress = (
+                max(0, player_x + BLOCK_SIZE * 2) / self.map_width
+            )
         else:
             self.progress_bar.progress = (
                 self.camera.x + SCREEN_SIZE[0] / 3 + BLOCK_SIZE * 2
             ) / self.map_width
+
+    def all_dead(self):
+        for player in self.player_sprite_group:
+            if not player.dead:
+                return False
+        return True
+
+    def get_winner(self):
+        for player in self.player_sprite_group:
+            if player.won:
+                return player
+        return None
+
+    def draw(
+        self,
+        screen: pygame.Surface,
+        attempt_num: int,
+        simulate: bool,
+    ):
+        self.tile_sprite_group.draw(screen)
+
+        screen.blit(self.floor.image, self.floor.rect.move(0, -self.camera.y))
+
+        for element in self.element_sprite_group:
+            offset_rect = element.rect.move(-self.camera.x, -self.camera.y)
+            screen.blit(element.image, offset_rect)
+
+        # player particles
+        alpha_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
+        alpha_surface.fill((255, 255, 255, 1), special_flags=pygame.BLEND_RGBA_MULT)
+        for player in self.player_sprite_group:
+            for particle in player.particles:
+                pygame.draw.rect(
+                    alpha_surface,
+                    (255, 255, 255, 255 * (particle.ttl / 16)),
+                    particle.rect.move(-self.camera.x, -self.camera.y),
+                )
+        screen.blit(alpha_surface, (0, 0))
+
+        for player in self.player_sprite_group:
+            screen.blit(
+                player.ship_image if player.flying else player.image,
+                player.rect.move(-self.camera.x, -self.camera.y),
+            )
+
+        self.progress_bar.draw(screen)
+
+        if not simulate:
+            Text(
+                f"ATTEMPT {attempt_num}",
+                50,
+                center=(
+                    SCREEN_SIZE[0] / 2 - self.camera.x,
+                    self.map_height - 8 * BLOCK_SIZE - self.camera.y,
+                ),
+            ).draw(screen)
+        else:
+            Text(f"Generation {attempt_num}", 30, topleft=(20, 20)).draw(screen)
+            best_score = self.best_ai_player.score if self.best_ai_player else 0
+            Text(
+                f"Best score: {(100 * best_score / self.map_width):.2f}%",
+                30,
+                topleft=(20, 50),
+            ).draw(screen)
+
+        # TODO: draw game time and total time
