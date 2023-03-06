@@ -7,14 +7,16 @@ from components.progress_bar import ProgressBar
 from components.text import Text
 from config import (
     BLOCK_SIZE,
+    ELEMENTS,
+    PALETTE,
     SCREEN_BLOCKS,
     SCREEN_SIZE,
     VELOCITY_X,
-    ELEMENTS,
     CollisionType,
 )
 from jump_controller import JumpControllerManual, JumpControllerAI
-from sprite import ElementSprite, ImageSprite, Player, TiledSprite
+from sprites.basic import ElementSprite, ImageSprite, TiledSprite
+from sprites.player import Player
 from utils import FillType, load_image
 
 
@@ -50,6 +52,7 @@ class Game:
         self.map_height = len(map) * BLOCK_SIZE
         self.map_width = len(map[0]) * BLOCK_SIZE
 
+        self.num_ai_players = num_ai_players
         self.best_ai_player = best_ai_player
 
         # The camera will determine the upper-left corner of the screen
@@ -88,6 +91,7 @@ class Game:
 
         player_sprite_group = pygame.sprite.Group()
         for i in range(num_ai_players):
+            color1, color2 = random.choice(PALETTE), random.choice(PALETTE)
             if i == num_ai_players - 1:
                 # Make the first player the same as the best player from the
                 # previous generation so that the NN does not devolve
@@ -110,6 +114,8 @@ class Game:
                 image = load_image(
                     f"assets/players/player-{random.randint(1, 20)}.png",
                     fill_type=FillType.PLAYER,
+                    color1=color1,
+                    color2=color2,
                 )
 
             Player(
@@ -120,7 +126,12 @@ class Game:
                 ),
                 Vector2(VELOCITY_X, 0),
                 image,
-                load_image(f"assets/ships/ship-1.png", fill_type=FillType.SHIP),
+                load_image(
+                    f"assets/ships/ship-1.png",
+                    fill_type=FillType.SHIP,
+                    color1=color1,
+                    color2=color2,
+                ),
                 jump_controller=jump_controller,
                 sprite_groups=[player_sprite_group],
             )
@@ -223,6 +234,13 @@ class Game:
                 return False
         return True
 
+    def count_alive(self):
+        count = 0
+        for player in self.player_sprite_group:
+            if not player.dead:
+                count += 1
+        return count
+
     def get_winner(self):
         for player in self.player_sprite_group:
             if player.won:
@@ -233,6 +251,8 @@ class Game:
         self,
         screen: pygame.Surface,
         attempt_num: int,
+        game_time: float,
+        total_time: float,
         simulate: bool,
     ):
         self.tile_sprite_group.draw(screen)
@@ -263,6 +283,12 @@ class Game:
 
         self.progress_bar.draw(screen)
 
+        Text(
+            f"Time: {game_time:.2f}s",
+            30,
+            bottomleft=(20, SCREEN_SIZE[1] - 20),
+        ).draw(screen)
+
         if not simulate:
             Text(
                 f"ATTEMPT {attempt_num}",
@@ -274,11 +300,15 @@ class Game:
             ).draw(screen)
         else:
             Text(f"Generation {attempt_num}", 30, topleft=(20, 20)).draw(screen)
+            Text(
+                f"{self.count_alive()}/{self.num_ai_players} alive",
+                30,
+                topleft=(20, 50),
+            ).draw(screen)
             best_score = self.best_ai_player.score if self.best_ai_player else 0
             Text(
                 f"Best score: {(100 * best_score / self.map_width):.2f}%",
                 30,
-                topleft=(20, 50),
+                topleft=(20, 80),
             ).draw(screen)
-
-        # TODO: draw game time and total time
+            Text(f"Total time: {total_time:.2f}s", 30, topleft=(20, 110)).draw(screen)

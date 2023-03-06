@@ -89,8 +89,6 @@ def menu(screen: pygame.Surface, clock: pygame.time.Clock, level_id: int = 0):
         for text in explainer_text:
             text.draw(screen)
 
-        # TODO: add explainer text
-
         pygame.display.update()
 
     if go_to_play:

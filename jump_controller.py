@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from config import BLOCK_SIZE, CollisionType
 
 if TYPE_CHECKING:
-    from sprite import Player
+    from sprites.player import Player
 
 
 class JumpController(ABC):
@@ -164,7 +164,7 @@ class JumpControllerAI(JumpController):
     def should_jump(self, player: Player, element_map: dict, floor_level: int):
         dist_to_death = self.hallucinate_dist_to_death(player, element_map, floor_level)
 
-        print("dist_to_death:", dist_to_death)
+        # print("dist_to_death:", dist_to_death)
 
         if player.flying:
             vertical_obstacle_height = self.get_vertical_obstacle_height(
@@ -177,7 +177,8 @@ class JumpControllerAI(JumpController):
 
         # if dist_to_death < 46:  # jump anytime now
         if dist_to_death < 40:  # jump anytime now
-            print("  jump anytime now")
+            print("dist_to_death:", dist_to_death)
+            # print("  jump anytime now")
             tile_coord = (player.rect.x // BLOCK_SIZE, player.rect.y // BLOCK_SIZE)
             element = element_map.get(tile_coord)
             on_jump_orb = (

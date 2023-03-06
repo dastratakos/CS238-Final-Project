@@ -2,7 +2,8 @@ import pygame
 from pygame.math import Vector2
 
 from config import BLOCK_SIZE, CollisionType
-from sprite import ElementSprite, Player
+from sprites.basic import ElementSprite
+from sprites.player import Player
 from utils import FillType, load_image
 
 
