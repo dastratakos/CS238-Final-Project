@@ -1,12 +1,13 @@
 import csv
 from enum import Enum
 import os
+import random
 from typing import Tuple
 
 import pygame
 from pygame.math import Vector2
 
-from config import BLOCK_SIZE, LEVELS
+from config import BLOCK_SIZE, LEVELS, PALETTE
 
 
 def resize_image(
@@ -99,8 +100,8 @@ def load_image(
     filename: str,
     size: Tuple[int, int] = (BLOCK_SIZE, BLOCK_SIZE),
     fill_type: FillType = FillType.NONE,
-    color1: Tuple[int, int, int] = (2, 255, 0),
-    color2: Tuple[int, int, int] = (2, 255, 255),
+    color1: Tuple[int, int, int] = None, # = (2, 255, 0),
+    color2: Tuple[int, int, int] = None, # = (2, 255, 255),
 ):
     """Loads an image from the given filename, resizes it, and adds color if
     fill_tyep is not FillType.NONE.
@@ -121,6 +122,8 @@ def load_image(
     """
     if os.path.exists(filename):
         image = resize_image(pygame.image.load(filename), size)
+        color1 = color1 if color1 else random.choice(PALETTE)
+        color2 = color2 if color2 else random.choice(PALETTE)
         match fill_type:
             case FillType.PLAYER:
                 fill_player(image, color1, color2)

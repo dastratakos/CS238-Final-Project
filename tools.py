@@ -84,5 +84,45 @@ def crop_map(infile, outfile, start_col, end_col):
             f.write(",".join([str(value) for value in row[start_col:end_col]]) + "\n")
 
 
+def join_maps(infile1, infile2, outfile):
+    with open(infile1) as f:
+        reader = csv.reader(f)
+        map = []
+        for row in reader:
+            r = []
+            for cell in row:
+                r.append(cell)
+            map.append(r)
+
+    with open(infile2) as f:
+        reader = csv.reader(f)
+        i = 0
+        for row in reader:
+            r = []
+            for cell in row:
+                r.append(cell)
+            map[i].extend(r)
+            i += 1
+
+    with open(outfile, "w") as f:
+        for row in map:
+            f.write(",".join([str(value) for value in row]) + "\n")
+            
+def remove_col(infile, outfile, col):
+    with open(infile) as f:
+        reader = csv.reader(f)
+        map = []
+        for row in reader:
+            r = []
+            for cell in row:
+                r.append(cell)
+            map.append(r)
+
+    with open(outfile, "w") as f:
+        for row in map:
+            row.pop(col)
+            f.write(",".join([str(value) for value in row]) + "\n")
+
+
 if __name__ == "__main__":
-    crop_map("maps/1.csv", "maps/1-cropped.csv", 410, 510)
+    remove_col("maps/2-easy.csv", "maps/2-easy-2.csv", 250)

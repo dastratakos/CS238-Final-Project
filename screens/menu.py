@@ -5,13 +5,11 @@ from components.button import Button
 from components.text import Text
 
 
-def menu(screen: pygame.Surface, clock: pygame.time.Clock):
-    level_id = 1
-
+def menu(screen: pygame.Surface, clock: pygame.time.Clock, level_id: int = 0):
     background = pygame.image.load("assets/background.png")
 
     title = Text(
-        f"Level {level_id}: {LEVELS[level_id]['name']}",
+        f"Level {level_id + 1}: {LEVELS[level_id]['name']}",
         50,
         midbottom=(SCREEN_SIZE[0] / 2, SCREEN_SIZE[1] / 4 - 40),
     )
@@ -63,22 +61,22 @@ def menu(screen: pygame.Surface, clock: pygame.time.Clock):
                 elif simulate_button.rect.collidepoint(event.pos):
                     go_to_simulate = True
                 elif prev_button.rect.collidepoint(event.pos):
-                    level_id = (level_id - 2) % len(LEVELS) + 1
-                    title.text = f"Level {level_id}: {LEVELS[level_id]['name']}"
+                    level_id = (level_id - 1) % len(LEVELS)
+                    title.text = f"Level {level_id + 1}: {LEVELS[level_id]['name']}"
                 elif next_button.rect.collidepoint(event.pos):
-                    level_id = level_id % len(LEVELS) + 1
-                    title.text = f"Level {level_id}: {LEVELS[level_id]['name']}"
+                    level_id = (level_id + 1) % len(LEVELS)
+                    title.text = f"Level {level_id + 1}: {LEVELS[level_id]['name']}"
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:
                     go_to_play = True
                 elif event.key == pygame.K_s:
                     go_to_simulate = True
                 elif event.key == pygame.K_LEFT:
-                    level_id = (level_id - 2) % len(LEVELS) + 1
-                    title.text = f"Level {level_id}: {LEVELS[level_id]['name']}"
+                    level_id = (level_id - 1) % len(LEVELS)
+                    title.text = f"Level {level_id + 1}: {LEVELS[level_id]['name']}"
                 elif event.key == pygame.K_RIGHT:
-                    level_id = level_id % len(LEVELS) + 1
-                    title.text = f"Level {level_id}: {LEVELS[level_id]['name']}"
+                    level_id = (level_id + 1) % len(LEVELS)
+                    title.text = f"Level {level_id + 1}: {LEVELS[level_id]['name']}"
 
         # Redraw
         screen.blit(background, (0, 0))

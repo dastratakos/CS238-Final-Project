@@ -241,7 +241,11 @@ class Player(ImageSprite):
                         self.velocity = Vector2(0, 0)
                         return
                     case CollisionType.JUMP_PAD:
-                        self.velocity.y = -VELOCITY_JUMP_PAD
+                        if self.render_particles:
+                            print("hi", self.rect.x, element.rect.x)
+                        # wait until the player is in the middle of the jump pad
+                        if self.rect.x >= element.rect.x - 6:
+                            self.velocity.y = -VELOCITY_JUMP_PAD
                     case CollisionType.END:
                         self.won = True
                         self.velocity = Vector2(0, 0)

@@ -106,7 +106,7 @@ def play(
                 topright=(SCREEN_SIZE[0] - 25, 125),
             ).draw(screen)
 
-        pause_button.text = "Pause" if not pause else "Resume"
+        pause_button.text = "Pause" if not pause else "Play"
         pause_button.draw(screen)
 
         pygame.display.flip()
@@ -158,7 +158,7 @@ def play(
                         pause = False
                         go_to_menu = True
 
-            pause_button.text = "Pause" if not pause else "Resume"
+            pause_button.text = "Pause" if not pause else "Play"
             pause_button.draw(screen)
 
             pygame.display.update()
@@ -167,4 +167,4 @@ def play(
     if go_to_menu:
         from screens.menu import menu
 
-        menu(screen, clock)
+        menu(screen, clock, level_id=level_id)

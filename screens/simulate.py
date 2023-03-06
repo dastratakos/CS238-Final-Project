@@ -16,7 +16,7 @@ def simulate(
     clock: pygame.time.Clock,
     level_id: int,
     num_manual_players: int = 0,
-    num_ai_players: int = 1,
+    num_ai_players: int = 20,
 ):
     generation = 0
     best_ai_player: Player = None
@@ -70,6 +70,7 @@ def simulate(
                                 num_ai_players,
                                 best_ai_player=best_ai_player,
                             )
+                            debug = False
                         elif event.key == pygame.K_p:
                             pause = True
                             debug = False
@@ -161,4 +162,4 @@ def simulate(
         if go_to_menu:
             from screens.menu import menu
 
-            menu(screen, clock)
+            menu(screen, clock, level_id=level_id)

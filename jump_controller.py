@@ -164,16 +164,20 @@ class JumpControllerAI(JumpController):
     def should_jump(self, player: Player, element_map: dict, floor_level: int):
         dist_to_death = self.hallucinate_dist_to_death(player, element_map, floor_level)
 
-        print(dist_to_death)
-
-        # vertical_obstacle_height = self.get_vertical_obstacle_height(
-        #     player, element_map, floor_level
-        # )
+        print("dist_to_death:", dist_to_death)
 
         if player.flying:
-            return dist_to_death < 200
+            vertical_obstacle_height = self.get_vertical_obstacle_height(
+                player, element_map, floor_level
+            )
+            vertical_player_height = floor_level - player.rect.y
+            if vertical_player_height - vertical_obstacle_height < 4 * BLOCK_SIZE:
+                return True
+            # return dist_to_death < 200
 
-        if dist_to_death < 60:  # jump anytime now
+        # if dist_to_death < 46:  # jump anytime now
+        if dist_to_death < 40:  # jump anytime now
+            print("  jump anytime now")
             tile_coord = (player.rect.x // BLOCK_SIZE, player.rect.y // BLOCK_SIZE)
             element = element_map.get(tile_coord)
             on_jump_orb = (
@@ -184,7 +188,9 @@ class JumpControllerAI(JumpController):
                 player, element_map, floor_level, on_jump_orb
             )
 
-            print(will_die_if_jump)
+            print(f"  {'will' if will_die_if_jump else 'wont'} die")
+            if not will_die_if_jump:
+                print(f"  can{'' if player.on_ground or player.flying else 't'} jump")
 
             return not will_die_if_jump  # don't jump if it'll make you die
         return False
