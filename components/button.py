@@ -11,6 +11,7 @@ class Button:
         width,
         height,
         text,
+        font_size=36,
         color=(100, 100, 100),
         hover_color=(200, 200, 200),
         border_radius=10,
@@ -20,6 +21,7 @@ class Button:
         self.width = width
         self.height = height
         self.text = text
+        self.font_size = font_size
         self.color = color
         self.hover_color = hover_color
         self.rect = pygame.Rect(x, y, width, height)
@@ -91,7 +93,7 @@ class Button:
         # text
         text = Text(
             self.text,
-            36,
+            self.font_size,
             text_color,
             center=(self.x + self.width // 2, self.y + self.height // 2),
         )

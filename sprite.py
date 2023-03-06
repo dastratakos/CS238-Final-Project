@@ -225,34 +225,45 @@ class Player(ImageSprite):
                 self.rect.center[1] // BLOCK_SIZE + y,
             )
             element = element_map.get(tile_coord)
-            if not element or not pygame.sprite.collide_mask(self, element):
+            if not element:
                 continue
 
-            match element.collision_type:
-                case type if type in [
-                    CollisionType.SOLID,
-                    CollisionType.SOLID_TOP,
-                    CollisionType.SOLID_BOTTOM,
-                    CollisionType.SPIKE,
-                ]:
-                    self.dead = True
-                    self.score = self.rect.x
-                    self.velocity = Vector2(0, 0)
-                    return
-                case CollisionType.JUMP_PAD:
-                    self.velocity.y = -VELOCITY_JUMP_PAD
-                case CollisionType.END:
-                    self.won = True
-                    self.velocity = Vector2(0, 0)
-                    return
-                case CollisionType.PORTAL_FLY_START:
-                    self.flying = True
-                case CollisionType.PORTAL_FLY_END:
-                    self.flying = False
-                case CollisionType.PORTAL_GRAVITY_REVERSE:
-                    self.gravity_reversed = True
-                case CollisionType.PORTAL_GRAVITY_NORMAL:
-                    self.gravity_reversed = False
+            if pygame.sprite.collide_mask(self, element):
+                match element.collision_type:
+                    case type if type in [
+                        CollisionType.SOLID,
+                        CollisionType.SOLID_TOP,
+                        CollisionType.SOLID_BOTTOM,
+                        CollisionType.SPIKE,
+                    ]:
+                        self.dead = True
+                        self.score = self.rect.x
+                        self.velocity = Vector2(0, 0)
+                        return
+                    case CollisionType.JUMP_PAD:
+                        self.velocity.y = -VELOCITY_JUMP_PAD
+                    case CollisionType.END:
+                        self.won = True
+                        self.velocity = Vector2(0, 0)
+                        return
+                    case CollisionType.PORTAL_FLY_START:
+                        self.flying = True
+                    case CollisionType.PORTAL_FLY_END:
+                        self.flying = False
+                    case CollisionType.PORTAL_GRAVITY_REVERSE:
+                        self.gravity_reversed = True
+                    case CollisionType.PORTAL_GRAVITY_NORMAL:
+                        self.gravity_reversed = False
+            elif pygame.sprite.collide_rect(self, element):
+                match element.collision_type:
+                    case CollisionType.PORTAL_FLY_START:
+                        self.flying = True
+                    case CollisionType.PORTAL_FLY_END:
+                        self.flying = False
+                    case CollisionType.PORTAL_GRAVITY_REVERSE:
+                        self.gravity_reversed = True
+                    case CollisionType.PORTAL_GRAVITY_NORMAL:
+                        self.gravity_reversed = False
 
     def check_collisions_y(self, element_map: dict, floor_level: int):
         """Checks for collisions in the y direction.
@@ -322,12 +333,13 @@ class Player(ImageSprite):
             return
 
         # Move x
-        self.rect.x += 1
+        self.rect.x += self.velocity.x
+        # self.rect.x += 2
 
         # Check collisions x
         self.check_collisions_x(element_map)
 
-        self.rect.x += self.velocity.x - 1
+        # self.rect.x += self.velocity.x - 2
 
         if self.dead:
             return

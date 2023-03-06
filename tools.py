@@ -1,3 +1,4 @@
+import csv
 from PIL import Image
 
 
@@ -68,5 +69,20 @@ def convert_map():
                 f.write(",".join([str(value) for value in row]) + "\n")
 
 
+def crop_map(infile, outfile, start_col, end_col):
+    with open(infile) as f:
+        reader = csv.reader(f)
+        map = []
+        for row in reader:
+            r = []
+            for cell in row:
+                r.append(cell)
+            map.append(r)
+
+    with open(outfile, "w") as f:
+        for row in map:
+            f.write(",".join([str(value) for value in row[start_col:end_col]]) + "\n")
+
+
 if __name__ == "__main__":
-    crop_elements()
+    crop_map("maps/1.csv", "maps/1-cropped.csv", 410, 510)

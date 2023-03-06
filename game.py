@@ -190,6 +190,7 @@ class Game:
     def update(self):
         for player in self.player_sprite_group:
             if not player.dead:
+                print("on_ground", player.on_ground)
                 player.should_jump = player.jump_controller.should_jump(
                     player, self.element_map, self.map_height
                 )

@@ -16,7 +16,7 @@ def simulate(
     clock: pygame.time.Clock,
     level_id: int,
     num_manual_players: int = 0,
-    num_ai_players: int = 20,
+    num_ai_players: int = 1,
 ):
     generation = 0
     best_ai_player: Player = None
@@ -100,9 +100,13 @@ def simulate(
             if not debug or next_frame:
                 game.update()
 
-            # Check if all players are dead or all won
+            # Check if all players are dead or if one won
             for player in game.player_sprite_group:
-                if not player.dead and not player.won:
+                if player.won:
+                    best_ai_player = player
+                    pause = True
+                    break
+                if not player.dead:
                     break
             else:
                 # Determine the winner and start a new generation
@@ -110,10 +114,7 @@ def simulate(
                 if not best_ai_player or winner.score > best_ai_player.score:
                     best_ai_player = winner
                 generation += 1
-                if best_ai_player.won:
-                    pause = True
-                else:
-                    break
+                break
 
             # Redraw
             game.tile_sprite_group.draw(screen)

@@ -85,8 +85,15 @@ class JumpControllerAI(JumpController):
 
         clone = player.clone()
 
+        """Count out 50 safe spaces
+
+        Returns:
+            _type_: _description_
+        """
+
         # Around 8 * BLOCK_SIZE look-ahead
-        for _ in range(40):
+        num_steps = 0
+        while num_steps < 50:
             clone.update(element_map, floor_level)
             if clone.dead:
                 return dist
@@ -94,6 +101,7 @@ class JumpControllerAI(JumpController):
                 return float("inf")
             if clone.on_ground or clone.flying:  # safe
                 dist = clone.rect.x - curr_x
+                num_steps += 1
         return dist
 
     def hallucinate_will_die_if_jump(
@@ -119,7 +127,7 @@ class JumpControllerAI(JumpController):
         clone.should_jump = True
 
         # Around 8 * BLOCK_SIZE look-ahead
-        for _ in range(40):
+        for _ in range(50):
             clone.update(element_map, floor_level)
             if clone.dead:
                 return True
@@ -156,24 +164,30 @@ class JumpControllerAI(JumpController):
     def should_jump(self, player: Player, element_map: dict, floor_level: int):
         dist_to_death = self.hallucinate_dist_to_death(player, element_map, floor_level)
 
-        # tile_coord = (player.rect.x // BLOCK_SIZE, player.rect.y // BLOCK_SIZE)
-        # element = element_map.get(tile_coord)
-        # on_jump_orb = (
-        #     element.collision_type == CollisionType.JUMP_ORB if element else False
-        # )
-
-        # will_die_if_jump = self.hallucinate_will_die_if_jump(
-        #     player, element_map, floor_level, on_jump_orb
-        # )
+        print(dist_to_death)
 
         # vertical_obstacle_height = self.get_vertical_obstacle_height(
         #     player, element_map, floor_level
         # )
-        
+
         if player.flying:
             return dist_to_death < 200
-        
-        return dist_to_death < 30
+
+        if dist_to_death < 60:  # jump anytime now
+            tile_coord = (player.rect.x // BLOCK_SIZE, player.rect.y // BLOCK_SIZE)
+            element = element_map.get(tile_coord)
+            on_jump_orb = (
+                element.collision_type == CollisionType.JUMP_ORB if element else False
+            )
+
+            will_die_if_jump = self.hallucinate_will_die_if_jump(
+                player, element_map, floor_level, on_jump_orb
+            )
+
+            print(will_die_if_jump)
+
+            return not will_die_if_jump  # don't jump if it'll make you die
+        return False
 
         features = [
             # int(player.flying),

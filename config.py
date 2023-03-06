@@ -24,6 +24,8 @@ LEVELS = {
     5: {"name": "Base After Base", "filename": "maps/5.csv"},
     6: {"name": "Portals", "filename": "maps/portals.csv"},
     7: {"name": "Portals Simple", "filename": "maps/portals-simple.csv"},
+    8: {"name": "Portals End", "filename": "maps/portals-end.csv"},
+    9: {"name": "Stero Madness Tricky", "filename": "maps/1-cropped.csv"},
 }
 
 

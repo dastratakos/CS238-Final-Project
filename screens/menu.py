@@ -34,7 +34,7 @@ def menu(screen: pygame.Surface, clock: pygame.time.Clock):
 
     explainer_text = """Welcome to Geometry Dash AI!
         
-        Press "space" to click the Play button to play the level.
+        Press "p" to click the Play button to play the level.
         
         Press "s" or click the Simulate button to run an AI on the level.
         The AI is trained using a genetic algorithm.
@@ -69,7 +69,7 @@ def menu(screen: pygame.Surface, clock: pygame.time.Clock):
                     level_id = level_id % len(LEVELS) + 1
                     title.text = f"Level {level_id}: {LEVELS[level_id]['name']}"
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_p:
                     go_to_play = True
                 elif event.key == pygame.K_s:
                     go_to_simulate = True
